@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"reflect"
 )
 
@@ -13,38 +12,19 @@ type APIClient struct {
 	httpClient *HttpClient
 }
 
-func NewAPIClient(apiKey string, testnet ...bool) (*APIClient, error) {
+func NewAPIClient(apiKey string, testnet ...bool) *APIClient {
 	host := gatewayMainnet
 	if len(testnet) > 0 && testnet[0] {
 		host = gatewayTestnet
 	}
 
-	client := &APIClient{
-		apiKey: apiKey,
-		httpClient: &HttpClient{
-			host: host,
-		},
-	}
-
-	token, err := client.login()
-	if err != nil {
-		return nil, err
-	}
-
 	header := make(http.Header)
-	header.Add("Authorization", "Bearer "+token)
-	client.httpClient.header = header
-	return client, nil
-}
+	header.Add("Authorization", "Bearer "+apiKey)
 
-func (c *APIClient) login() (string, error) {
-	var token string
-
-	if err := c.httpClient.PostForm(apiLogin, url.Values{"api_key": {c.apiKey}}, NewResult(&token)); err != nil {
-		return "", err
+	return &APIClient{
+		apiKey:     apiKey,
+		httpClient: NewHttpClient(host, header),
 	}
-
-	return token, nil
 }
 
 func (c *APIClient) Hardwares() ([]*Hardware, error) {
@@ -57,14 +37,31 @@ func (c *APIClient) Hardwares() ([]*Hardware, error) {
 	return result.Hardware, nil
 }
 
-func (c *APIClient) TaskInfo(taskUUID string) (*TaskDetails, error) {
-	var result TaskDetails
+func (c *APIClient) TaskInfo(taskUUID string) (*TaskInfo, error) {
+	var result TaskInfo
 
 	if err := c.httpClient.Get(fmt.Sprintf("%s/%s", apiTask, taskUUID), nil, NewResult(&result)); err != nil {
 		return nil, err
 	}
 
 	return &result, nil
+}
+
+func (c *APIClient) Tasks(req *TaskQueryReq) (total int64, list []*TaskInfo, err error) {
+	api := apiTasks
+	if req != nil {
+		api += fmt.Sprintf("?wallet=%s&size=%d&page=%d", req.Wallet, req.Size, req.Page)
+
+	}
+
+	var result PageResult
+	result.List = &list
+
+	if err = c.httpClient.Get(api, nil, NewResult(&result)); err != nil {
+		return
+	}
+	total = result.Total
+	return
 }
 
 type Result struct {
