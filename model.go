@@ -181,3 +181,49 @@ type TaskQueryReq struct {
 	Page   uint   `form:"page"`
 	Size   uint   `form:"size"`
 }
+
+type CreateTaskReq struct {
+	WalletAddress   string   `json:"wallet_address"`
+	PrivateKey      string   `json:"private_key,omitempty"`
+	HardwareId      int64    `json:"hardware_id"`
+	Region          string   `json:"region"`
+	Duration        int      `json:"duration"`
+	AppRepoImage    string   `json:"app_repo_image"`
+	AutoPay         bool     `json:"auto_pay"`
+	JobSourceUri    string   `json:"job_source_uri"`
+	RepoUri         string   `json:"repo_uri"`
+	RepoBranch      string   `json:"repo_branch"`
+	RepoOwner       string   `json:"repo_owner"`
+	RepoName        string   `json:"repo_name"`
+	StartIn         int      `json:"start_in"`
+	PreferredCpList []string `json:"preferred_cp_list"`
+}
+
+type CreateTaskResp struct {
+	TaskUuid    string      `json:"task_uuid"`
+	TxHash      string      `json:"tx_hash"`
+	Id          string      `json:"id"`
+	HardwareId  int64       `json:"hardware_id"`
+	ConfigOrder ConfigOrder `json:"config_order"`
+}
+
+func (task *CreateTaskReq) WithPrivateKey(privateKey string) {
+	task.PrivateKey = privateKey
+}
+
+type RepoImageResult struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
+type JobSourceUriResult struct {
+	JobSourceUri string `json:"job_source_uri"`
+}
+
+type ValidatePaymentResult struct {
+}
+
+type PaymentResult struct {
+	ConfigOrder ConfigOrder `json:"config_order"`
+	TxHash      string      `json:"tx_hash"`
+}
