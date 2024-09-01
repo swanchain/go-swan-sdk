@@ -346,6 +346,95 @@ func (c *APIClient) GetSourceUri(repoUri, walletAddress string, hardwareId *int6
 	return jobSourceUriResult.JobSourceUri, nil
 }
 
+func (c *APIClient) ReNewTask(taskUuid, txHash, privateKey string, hardwareId *int64, duration int, autoPay bool) (*ReNewTaskResp, error) {
+	if hardwareId == nil {
+		return nil, fmt.Errorf("invalid hardwareId")
+	}
+
+	if !autoPay && privateKey == "" && txHash == "" {
+		return nil, fmt.Errorf("auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
+	}
+	if txHash != "" {
+		// renew_payment
+	}
+
+	if txHash != "" && taskUuid != "" {
+		var params = map[string]interface{}{
+			"task_uuid": taskUuid,
+			"duration":  duration,
+			"tx_hash":   txHash,
+		}
+
+		var reNewTaskResp ReNewTaskResp
+		if err := c.httpClient.PostJSON(apiReNewTask, params, NewResult(&reNewTaskResp)); err != nil {
+			return nil, err
+		}
+		return &reNewTaskResp, nil
+	} else {
+		return nil, fmt.Errorf("txHash or taskUuid invalid")
+	}
+
+}
+
+func (c *APIClient) RenewPayment(taskUuid, privateKey string, hardwareId *int64, duration int) (*ReNewTaskResp, error) {
+	if hardwareId == nil {
+		return nil, fmt.Errorf("invalid hardwareId")
+	}
+	if privateKey == "" {
+		return nil, fmt.Errorf("no privateKey provided")
+	}
+
+	client, err := ethclient.Dial("")
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
+
+	hardwareIdBigInt := new(big.Int).SetInt64(*hardwareId)
+	durationBigInt := new(big.Int).SetInt64(int64(duration))
+
+	// call token contract approve
+	tokenContract, err := contract.NewToken(common.HexToAddress(""), client)
+	if err != nil {
+		return nil, err
+	}
+
+	// call payment contract submit_payment
+	paymentContract, err := contract.NewPaymentContract(common.HexToAddress(""), client)
+	if err != nil {
+		return nil, err
+	}
+
+	hardwareInfo, err := paymentContract.HardwareInfo(&bind.CallOpts{}, hardwareIdBigInt)
+	if err != nil {
+		return nil, err
+	}
+	price := hardwareInfo.PricePerHour.Int64() * int64(duration/3600)
+	priceBigInt := new(big.Int).SetInt64(price)
+
+	// client contract address
+	approveTransactOpts, err := CreateTransactOpts(client, privateKey)
+	if err != nil {
+		return nil, err
+	}
+	approve, err := tokenContract.Approve(approveTransactOpts, common.HexToAddress("client_contract_address"), priceBigInt)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("token approve tx: %v \n", approve.Hash().String())
+
+	paymentTransactOpts, err := CreateTransactOpts(client, privateKey)
+	if err != nil {
+		return nil, err
+	}
+	transaction, err := paymentContract.SubmitPayment(paymentTransactOpts, taskUuid, hardwareIdBigInt, durationBigInt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to submit payment, error: %v", err)
+	}
+	log.Printf("txHash: %v", transaction.Hash().String())
+	return nil, nil
+}
+
 type Result struct {
 	Data    any    `json:"data"`
 	Message string `json:"message"`

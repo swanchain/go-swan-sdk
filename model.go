@@ -227,3 +227,6 @@ type PaymentResult struct {
 	ConfigOrder ConfigOrder `json:"config_order"`
 	TxHash      string      `json:"tx_hash"`
 }
+
+type ReNewTaskResp struct {
+}
