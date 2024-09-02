@@ -21,7 +21,6 @@ func TestAPIClient_CreateTask(t *testing.T) {
 			req: &CreateTaskReq{
 				WalletAddress: "",
 				PrivateKey:    "",
-				HardwareId:    0,
 				Region:        "global",
 				Duration:      3600,
 				AutoPay:       true,
