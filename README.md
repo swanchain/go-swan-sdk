@@ -11,7 +11,6 @@
     - [Using Swan](#using-swan)
 - [A Sample Tutorial](#a-sample-tutorial)
     - [Orchestrator](#orchestrator)
-        - [Fetch available instance resources](#fetch-available-instance-resources)
         - [Create and deploy a task](#create-and-deploy-a-task)
         - [Check information of an existing task](#check-information-of-an-existing-task)
         - [Access application instances of an existing task](#access-application-instances-of-an-existing-task)
