@@ -5,14 +5,19 @@ type HardwareResult struct {
 }
 
 type Hardware struct {
-	Description   string                   `json:"hardware_description"`
-	ID            int64                    `json:"hardware_id"`
-	Name          string                   `json:"hardware_name"`
-	Price         string                   `json:"hardware_price"`
-	Status        string                   `json:"hardware_status"`
+	HardwareBaseInfo
 	Type          string                   `json:"hardware_type"`
 	Region        []string                 `json:"region"`
 	RegionDetails map[string]*RegionDetail `json:"region_detail"`
+}
+
+type HardwareBaseInfo struct {
+	Description string `json:"hardware_description"`
+	ID          int64  `json:"hardware_id"`
+	Name        string `json:"hardware_name"`
+	Price       string `json:"hardware_price"`
+	Status      string `json:"hardware_status"`
+	Type        string `json:"hardware_type"`
 }
 
 type RegionDetail struct {
@@ -185,10 +190,9 @@ type TaskQueryReq struct {
 type CreateTaskReq struct {
 	WalletAddress   string   `json:"wallet_address"`
 	PrivateKey      string   `json:"private_key,omitempty"`
-	HardwareId      int64    `json:"hardware_id"`
+	InstanceType    string   `json:"instance_type"`
 	Region          string   `json:"region"`
 	Duration        int      `json:"duration"`
-	AppRepoImage    string   `json:"app_repo_image"`
 	AutoPay         bool     `json:"auto_pay"`
 	JobSourceUri    string   `json:"job_source_uri"`
 	RepoUri         string   `json:"repo_uri"`
@@ -200,11 +204,13 @@ type CreateTaskReq struct {
 }
 
 type CreateTaskResp struct {
-	TaskUuid    string      `json:"task_uuid"`
-	TxHash      string      `json:"tx_hash"`
-	Id          string      `json:"id"`
-	HardwareId  int64       `json:"hardware_id"`
-	ConfigOrder ConfigOrder `json:"config_order"`
+	Task
+	ConfigOrder  ConfigOrder `json:"config_order"`
+	TxHash       string      `json:"tx_hash"`
+	Id           string      `json:"id"`
+	TaskUuid     string      `json:"task_uuid"`
+	InstanceType string      `json:"instance_type"`
+	Price        int64       `json:"price"`
 }
 
 func (task *CreateTaskReq) WithPrivateKey(privateKey string) {
@@ -221,12 +227,29 @@ type JobSourceUriResult struct {
 }
 
 type ValidatePaymentResult struct {
+	ConfigOrder
 }
 
 type PaymentResult struct {
-	ConfigOrder ConfigOrder `json:"config_order"`
-	TxHash      string      `json:"tx_hash"`
+	ConfigOrder
 }
 
 type ReNewTaskResp struct {
+}
+
+type ContractResult struct {
+	ContractInfo ContractInfo `json:"contract_info"`
+	Signature    string       `json:"signature"`
+}
+
+type ContractInfo struct {
+	ContractDetail ContractDetail `json:"contract_detail"`
+	Time           int            `json:"time"`
+}
+
+type ContractDetail struct {
+	ClientContractAddress    string `json:"client_contract_address"`
+	PaymentContractAddress   string `json:"payment_contract_address"`
+	RpcUrl                   string `json:"rpc_url"`
+	SwanTokenContractAddress string `json:"swan_token_contract_address"`
 }
