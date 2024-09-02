@@ -279,6 +279,21 @@ func (c *APIClient) ReNewTask(taskUuid, txHash, privateKey string, instanceType 
 
 }
 
+func (c *APIClient) TerminateTask(taskUuid string) (string, error) {
+	var terminateTaskResp TerminateTaskResp
+
+	if strings.TrimSpace(taskUuid) == "" {
+		return "", fmt.Errorf("invalid taskUuid")
+	}
+
+	var params map[string]string
+	params["task_uuid"] = taskUuid
+	if err := c.httpClient.PostJSON(apiTerminateTask, params, NewResult(&terminateTaskResp)); err != nil {
+		return "", err
+	}
+	return terminateTaskResp.Id, nil
+}
+
 func (c *APIClient) RenewPayment(taskUuid, privateKey string, instanceType string, duration int) (string, error) {
 	if strings.TrimSpace(instanceType) == "" {
 		return "", fmt.Errorf("invalid instanceType")

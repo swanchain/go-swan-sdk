@@ -237,6 +237,12 @@ type PaymentResult struct {
 type ReNewTaskResp struct {
 }
 
+type TerminateTaskResp struct {
+	Id         string `json:"id"`
+	Retryable  bool   `json:"retryable"`
+	TaskStatus string `json:"task_status"`
+}
+
 type ContractResult struct {
 	ContractInfo ContractInfo `json:"contract_info"`
 	Signature    string       `json:"signature"`

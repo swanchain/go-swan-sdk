@@ -11,8 +11,8 @@ const (
 	apiTask            = "/v2/task_deployment"
 	apiTasks           = "/v2/task_list"
 	apiContract        = "/contract_info"
-	apiPremadeImage    = "/util/example_code_mapping"
 	apiSourceUri       = "/v2/get_source_uri"
 	apiValidatePayment = "/v2/task_payment_validate"
 	apiReNewTask       = "/v2/extend_task"
+	apiTerminateTask   = "/terminate_task"
 )
