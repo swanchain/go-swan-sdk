@@ -377,6 +377,25 @@ func (c *APIClient) verifyHardwareRegion(instanceType, region string) bool {
 	return false
 }
 
+func (c *APIClient) GetRealUrl(taskUuid string) ([]string, error) {
+	if strings.TrimSpace(taskUuid) == "" {
+		return nil, fmt.Errorf("invalid taskUuid")
+	}
+
+	taskInfo, err := c.TaskInfo(taskUuid)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task info, error: %v", err)
+	}
+
+	var deployedUrl []string
+	for _, job := range taskInfo.Jobs {
+		if strings.TrimSpace(job.JobRealURI) != "" {
+			deployedUrl = append(deployedUrl, job.JobRealURI)
+		}
+	}
+	return deployedUrl, nil
+}
+
 // submitPayment Submit payment for a task
 //
 // Args:
