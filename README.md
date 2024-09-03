@@ -142,7 +142,7 @@ log.Printf("renew task with manual-pay response: %v", resp)
 #### [Terminate Task]
 
 ```go
-resp, err := apiClient.TerminateTask("<<TASK_UUID>>")
+resp, err := apiClient.TerminateTask("<TASK_UUID>")
 if err != nil {
     log.Fatalln(err)
 }
