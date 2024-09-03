@@ -5,14 +5,19 @@ type HardwareResult struct {
 }
 
 type Hardware struct {
-	Description   string                   `json:"hardware_description"`
-	ID            int64                    `json:"hardware_id"`
-	Name          string                   `json:"hardware_name"`
-	Price         string                   `json:"hardware_price"`
-	Status        string                   `json:"hardware_status"`
+	HardwareBaseInfo
 	Type          string                   `json:"hardware_type"`
 	Region        []string                 `json:"region"`
 	RegionDetails map[string]*RegionDetail `json:"region_detail"`
+}
+
+type HardwareBaseInfo struct {
+	Description string `json:"hardware_description"`
+	ID          int64  `json:"hardware_id"`
+	Name        string `json:"hardware_name"`
+	Price       string `json:"hardware_price"`
+	Status      string `json:"hardware_status"`
+	Type        string `json:"hardware_type"`
 }
 
 type RegionDetail struct {
@@ -180,4 +185,78 @@ type TaskQueryReq struct {
 	Wallet string `form:"wallet"`
 	Page   uint   `form:"page"`
 	Size   uint   `form:"size"`
+}
+
+type CreateTaskReq struct {
+	PrivateKey      string   `json:"private_key,omitempty"`
+	InstanceType    string   `json:"instance_type"`
+	Region          string   `json:"region"`
+	Duration        int      `json:"duration"`
+	AutoPay         bool     `json:"auto_pay"`
+	JobSourceUri    string   `json:"job_source_uri"`
+	RepoUri         string   `json:"repo_uri"`
+	RepoBranch      string   `json:"repo_branch"`
+	RepoOwner       string   `json:"repo_owner"`
+	RepoName        string   `json:"repo_name"`
+	StartIn         int      `json:"start_in"`
+	PreferredCpList []string `json:"preferred_cp_list"`
+}
+
+type CreateTaskResp struct {
+	Task         Task        `json:"task"`
+	ConfigOrder  ConfigOrder `json:"config_order"`
+	TxHash       string      `json:"tx_hash"`
+	Id           string      `json:"id"`
+	TaskUuid     string      `json:"task_uuid"`
+	InstanceType string      `json:"instance_type"`
+	Price        float64     `json:"price"`
+}
+
+func (task *CreateTaskReq) WithPrivateKey(privateKey string) {
+	task.PrivateKey = privateKey
+}
+
+type RepoImageResult struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
+type JobSourceUriResult struct {
+	JobSourceUri string `json:"job_source_uri"`
+}
+
+type ValidatePaymentResult struct {
+	ConfigOrder
+}
+
+type PaymentResult struct {
+	ConfigOrder
+}
+
+type ReNewTaskResp struct {
+	ConfigOrder ConfigOrder `json:"config_order"`
+	Task        Task        `json:"task"`
+}
+
+type TerminateTaskResp struct {
+	Id         string `json:"id"`
+	Retryable  bool   `json:"retryable"`
+	TaskStatus string `json:"task_status"`
+}
+
+type ContractResult struct {
+	ContractInfo ContractInfo `json:"contract_info"`
+	Signature    string       `json:"signature"`
+}
+
+type ContractInfo struct {
+	ContractDetail ContractDetail `json:"contract_detail"`
+	Time           int            `json:"time"`
+}
+
+type ContractDetail struct {
+	ClientContractAddress    string `json:"client_contract_address"`
+	PaymentContractAddress   string `json:"payment_contract_address"`
+	RpcUrl                   string `json:"rpc_url"`
+	SwanTokenContractAddress string `json:"swan_token_contract_address"`
 }
