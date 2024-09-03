@@ -8,14 +8,7 @@
 - [Quickstart](#quickstart)
     - [Installation](#installation)
     - [Get Orchestrator API Key](#get-orchestrator-api-key)
-    - [Using Swan](#using-swan)
-- [A Sample Tutorial](#a-sample-tutorial)
-    - [Orchestrator](#orchestrator)
-        - [Create and deploy a task](#create-and-deploy-a-task)
-        - [Check information of an existing task](#check-information-of-an-existing-task)
-        - [Access application instances of an existing task](#access-application-instances-of-an-existing-task)
-        - [Renew an existing task](#renew-an-existing-task)
-        - [Terminate an existing task](#terminate-an-existing-task)
+    - [Using Case](#Usage)
 - [License](#license)
 
 
