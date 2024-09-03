@@ -152,7 +152,7 @@ log.Printf("terminate task response: %v", resp)
 
 ## A Sample Tutorial
 
-For more detailed samples, consult [SDK Samples](https://github.com/swanchain/github.com/swanchain/go-swan-sdk/client_test.go).
+For more detailed samples, consult [SDK Samples](https://github.com/swanchain/go-swan-sdk/blob/main/client_test.go).
 
 
 ## License
