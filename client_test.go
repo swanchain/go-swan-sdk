@@ -1,177 +1,141 @@
 package swan
 
 import (
-	"reflect"
 	"testing"
 )
 
-func TestAPIClient_CreateTask(t *testing.T) {
-	type args struct {
-		req *CreateTaskReq
-	}
-	test := struct {
-		name    string
-		apiKey  string
-		args    args
-		want    CreateTaskResp
-		wantErr bool
-	}{
-		name: "createTask",
-		args: args{
-			req: &CreateTaskReq{
-				WalletAddress: "",
-				PrivateKey:    "",
-				Region:        "global",
-				Duration:      3600,
-				AutoPay:       true,
-				JobSourceUri:  "",
-				StartIn:       300,
-			},
-		},
-	}
-	t.Run(test.name, func(t *testing.T) {
-		apiClient := NewAPIClient("")
-		got, err := apiClient.CreateTask(test.args.req)
-		if (err != nil) != test.wantErr {
-			t.Errorf("CreateTask() error = %v, wantErr %v", err, test.wantErr)
-			return
-		}
-		if !reflect.DeepEqual(got, test.want) {
-			t.Errorf("CreateTask() got = %v, want %v", got, test.want)
-		}
-	})
+const (
+	ApiKey       = "<API_KEY>"
+	Wallet       = "<WALLET_ADDRESS>"
+	PrivateKey   = "<WALLET_ADDRESS_PRIVATE_KEY>"
+	JobSourceUri = "https://test-api.lagrangedao.org/spaces/143a526d-0cfc-41d6-b95c-53a4018829c8"
+)
 
+func TestAPIClient_CreateTaskWithAutoPay(t *testing.T) {
+	var req = CreateTaskReq{
+		PrivateKey:   PrivateKey,
+		AutoPay:      true,
+		JobSourceUri: JobSourceUri,
+	}
+	apiClient := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.CreateTask(&req)
+	if err != nil {
+		t.Errorf("CreateTaskWithAutoPay() error = %v", err)
+	}
+	t.Logf("create task with auto-pay response: %v", resp)
+}
+
+func TestAPIClient_CreateTask(t *testing.T) {
+	var req = CreateTaskReq{
+		PrivateKey:   PrivateKey,
+		AutoPay:      false,
+		JobSourceUri: JobSourceUri,
+	}
+
+	apiClient := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.CreateTask(&req)
+	if err != nil {
+		t.Errorf("CreateTask() error = %v", err)
+	}
+	t.Logf("create task response: %v", resp)
+}
+
+func TestAPIClient_PayAndDeployTask(t *testing.T) {
+	apiClient := NewAPIClient(ApiKey, true)
+
+	// taskUuid:  returned by create task
+	taskUuid := "a9d2f2ca-8819-43f7-9347-7ccf0ea11822"
+	payAndDeployTaskResp, err := apiClient.PayAndDeployTask(taskUuid, PrivateKey, 3600, "C1ae.small")
+	if err != nil {
+		t.Errorf("PayAndDeployTask() error = %v", err)
+	}
+	t.Logf("pay and deploy task response: %v", payAndDeployTaskResp)
 }
 
 func TestAPIClient_TaskInfo(t *testing.T) {
-	type fields struct {
-		apiKey       string
-		httpClient   *HttpClient
-		contractInfo ContractDetail
+	apiClient := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.TaskInfo("a9d2f2ca-8819-43f7-9347-7ccf0ea11822")
+	if err != nil {
+		t.Errorf("TaskInfo() error = %v", err)
 	}
-	type args struct {
-		taskUUID string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *TaskInfo
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &APIClient{
-				apiKey:     tt.fields.apiKey,
-				httpClient: tt.fields.httpClient,
-			}
-			got, err := c.TaskInfo(tt.args.taskUUID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TaskInfo() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TaskInfo() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	t.Logf("get task info response: %v", resp)
 }
 
-func TestNewAPIClient(t *testing.T) {
-	type args struct {
-		apiKey  string
-		testnet []bool
+func TestAPIClient_Tasks(t *testing.T) {
+	var req = &TaskQueryReq{
+		Wallet: Wallet,
+		Page:   0,
+		Size:   10,
 	}
-	tests := []struct {
-		name string
-		args args
-		want *APIClient
-	}{
-		// TODO: Add test cases.
+	apiClient := NewAPIClient(ApiKey, true)
+	total, resp, err := apiClient.Tasks(req)
+	if err != nil {
+		t.Errorf("Tasks() error = %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewAPIClient(tt.args.apiKey, tt.args.testnet...); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewAPIClient() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	t.Logf("get task list response, total: %d, data: %v", total, resp)
 }
 
-func TestNewResult(t *testing.T) {
-	type args struct {
-		dest any
+func TestAPIClient_Hardwares(t *testing.T) {
+	apiClient := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.Hardwares()
+	if err != nil {
+		t.Errorf("Hardwares() error = %v", err)
 	}
-	tests := []struct {
-		name string
-		args args
-		want *Result
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewResult(tt.args.dest); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewResult() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	t.Logf("get hardware list response: %v", resp)
 }
 
-func TestResult_Check(t *testing.T) {
-	type fields struct {
-		Data    any
-		Message string
-		Status  string
+func TestAPIClient_GetRealUrl(t *testing.T) {
+	apiClient := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.GetRealUrl("01c0f29a-2304-45fa-bb03-976348e714e4")
+	if err != nil {
+		t.Errorf("CreateTask() error = %v", err)
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+	t.Logf("create task response: %v", resp)
+}
+
+func TestAPIClient_TerminateTask(t *testing.T) {
+	apiClient := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.TerminateTask("01c0f29a-2304-45fa-bb03-976348e714e4")
+	if err != nil {
+		t.Errorf("TerminateTask() error = %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := &Result{
-				Data:    tt.fields.Data,
-				Message: tt.fields.Message,
-				Status:  tt.fields.Status,
-			}
-			if err := r.Check(); (err != nil) != tt.wantErr {
-				t.Errorf("Check() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
+	t.Logf("terminate task response: %v", resp)
 }
 
 func Test_getContractInfo(t *testing.T) {
-	type args struct {
-		validate bool
-		apiKey   string
+
+	apiClient := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.getContractInfo(false)
+	if err != nil {
+		t.Errorf("getContractInfo() error = %v", err)
 	}
-	test := struct {
-		name    string
-		args    args
-		want    ContractDetail
-		wantErr bool
-	}{
-		name: "getContractInfo",
-		args: args{
-			validate: false,
-			apiKey:   "53Qkrwdeyv",
-		},
-		wantErr: false,
+	t.Logf("get contract response: %v", resp)
+}
+
+func TestAPIClient_EstimatePayment(t *testing.T) {
+	apiClient := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.EstimatePayment("P1ae.medium", 3600)
+	if err != nil {
+		t.Errorf("EstimatePayment() error = %v", err)
 	}
-	t.Run(test.name, func(t *testing.T) {
-		apiClient := NewAPIClient(test.args.apiKey, true)
-		got, err := apiClient.getContractInfo(test.args.validate)
-		if (err != nil) != test.wantErr {
-			t.Errorf("getcontractInfo() error = %v, wantErr %v", err, test.wantErr)
-			return
-		}
-		t.Logf("getcontractInfo() got = %v", got)
-	})
+	// 32
+	t.Logf("estimate Payment response: %v", resp)
+}
+
+func TestAPIClient_ReNewTask(t *testing.T) {
+	apiClient := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.ReNewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", 3600, true, PrivateKey, "")
+	if err != nil {
+		t.Errorf("ReNewTask() error = %v", err)
+	}
+	t.Logf("renew task with auto-pay response: %v", resp)
+}
+
+func TestAPIClient_RenewPayment(t *testing.T) {
+	apiClient := NewAPIClient(ApiKey, true)
+	txHash, err := apiClient.RenewPayment("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", 3600, PrivateKey)
+	if err != nil {
+		t.Errorf("RenewPayment() error = %v", err)
+	}
+	t.Logf("renew payment response: %v", txHash)
 }

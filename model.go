@@ -188,7 +188,6 @@ type TaskQueryReq struct {
 }
 
 type CreateTaskReq struct {
-	WalletAddress   string   `json:"wallet_address"`
 	PrivateKey      string   `json:"private_key,omitempty"`
 	InstanceType    string   `json:"instance_type"`
 	Region          string   `json:"region"`
@@ -204,13 +203,13 @@ type CreateTaskReq struct {
 }
 
 type CreateTaskResp struct {
-	Task
+	Task         Task        `json:"task"`
 	ConfigOrder  ConfigOrder `json:"config_order"`
 	TxHash       string      `json:"tx_hash"`
 	Id           string      `json:"id"`
 	TaskUuid     string      `json:"task_uuid"`
 	InstanceType string      `json:"instance_type"`
-	Price        int64       `json:"price"`
+	Price        float64     `json:"price"`
 }
 
 func (task *CreateTaskReq) WithPrivateKey(privateKey string) {
@@ -235,6 +234,8 @@ type PaymentResult struct {
 }
 
 type ReNewTaskResp struct {
+	ConfigOrder ConfigOrder `json:"config_order"`
+	Task        Task        `json:"task"`
 }
 
 type TerminateTaskResp struct {

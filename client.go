@@ -1,14 +1,18 @@
 package swan
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/swanchain/go-swan-sdk/contract"
 	"log"
 	"math/big"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
@@ -19,6 +23,7 @@ type APIClient struct {
 	apiKey         string
 	httpClient     *HttpClient
 	contractDetail ContractDetail
+	hardwareList   []*Hardware
 }
 
 func NewAPIClient(apiKey string, testnet ...bool) *APIClient {
@@ -39,8 +44,24 @@ func NewAPIClient(apiKey string, testnet ...bool) *APIClient {
 	if err != nil {
 		log.Fatalf("failed to get contract detail, error: %v", err)
 	}
+
+	hardwareList, err := apiClient.Hardwares()
+	if err != nil {
+		log.Fatalf("failed to get hardware, error: %v", err)
+	}
+
+	apiClient.hardwareList = hardwareList
 	apiClient.contractDetail = contractDetail
 	return &apiClient
+}
+
+func (c *APIClient) login() {
+	var token string
+	if err := c.httpClient.PostForm(apiLogin, url.Values{"api_key": {c.apiKey}}, NewResult(&token)); err != nil {
+		log.Fatalf("failed to login in orchestrator, error: %v", err)
+		return
+	}
+	c.httpClient.header.Set("Authorization", "Bearer "+token)
 }
 
 func (c *APIClient) Hardwares() ([]*Hardware, error) {
@@ -55,11 +76,9 @@ func (c *APIClient) Hardwares() ([]*Hardware, error) {
 
 func (c *APIClient) TaskInfo(taskUUID string) (*TaskInfo, error) {
 	var result TaskInfo
-
 	if err := c.httpClient.Get(fmt.Sprintf("%s/%s", apiTask, taskUUID), nil, NewResult(&result)); err != nil {
 		return nil, err
 	}
-
 	return &result, nil
 }
 
@@ -83,13 +102,15 @@ func (c *APIClient) Tasks(req *TaskQueryReq) (total int64, list []*TaskInfo, err
 func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	var createTaskResp CreateTaskResp
 
-	if req.WalletAddress == "" {
-		return createTaskResp, fmt.Errorf("no wallet_address provided, please pass in a wallet_address")
-	}
-
 	if req.AutoPay && req.PrivateKey == "" {
 		return createTaskResp, fmt.Errorf("please provide private_key if using auto_pay")
 	}
+
+	publicKeyAddress, err := privateKeyToPublicKey(req.PrivateKey)
+	if err != nil {
+		return createTaskResp, err
+	}
+	var walletAddress = publicKeyAddress.String()
 
 	if req.Region == "" {
 		req.Region = "global"
@@ -114,7 +135,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 
 	if req.JobSourceUri == "" {
 		if req.RepoUri != "" {
-			sourceUri, err := c.GetSourceUri(req.RepoUri, req.WalletAddress, req.InstanceType, req.RepoBranch, req.RepoOwner, req.RepoName)
+			sourceUri, err := c.getSourceUri(req.RepoUri, walletAddress, req.InstanceType, req.RepoBranch, req.RepoOwner, req.RepoName)
 			if err != nil {
 				return createTaskResp, fmt.Errorf("please provide JobSourceUri, or RepoUri, error: %v", err)
 			}
@@ -131,29 +152,26 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 		preferredCp = strings.Join(req.PreferredCpList, ",")
 	}
 
-	var params map[string]interface{}
-	if c.verifyHardwareRegion(req.InstanceType, req.Region) {
-		params["duration"] = req.Duration
-		params["cfg_name"] = req.InstanceType
-		params["region"] = req.Region
-		params["start_in"] = req.StartIn
-		params["wallet"] = req.WalletAddress
-		params["job_source_uri"] = req.JobSourceUri
-	} else {
+	if !c.verifyHardwareRegion(req.InstanceType, req.Region) {
 		return createTaskResp, fmt.Errorf("no %s machine in %s", req.InstanceType, req.Region)
 	}
-
+	var params = make(url.Values)
+	params.Set("duration", strconv.Itoa(req.Duration))
+	params.Set("cfg_name", req.InstanceType)
+	params.Set("region", req.Region)
+	params.Set("start_in", strconv.Itoa(req.StartIn))
+	params.Set("wallet", walletAddress)
+	params.Set("job_source_uri", req.JobSourceUri)
 	if preferredCp != "" {
-		params["preferred_cp"] = preferredCp
+		params.Add("preferred_cp", preferredCp)
 	}
 
-	var task Task
-	if err := c.httpClient.PostJSON(apiTask, params, NewResult(&task)); err != nil {
+	c.login()
+	if err := c.httpClient.PostForm(apiTask, params, NewResult(&createTaskResp)); err != nil {
 		return createTaskResp, fmt.Errorf("failed to create task, error: %v", err)
 	}
-	taskUuid := task.UUID
 
-	createTaskResp.Task = task
+	taskUuid := createTaskResp.Task.UUID
 	createTaskResp.TaskUuid = taskUuid
 	createTaskResp.InstanceType = req.InstanceType
 	createTaskResp.Id = taskUuid
@@ -203,56 +221,29 @@ func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration int, 
 
 }
 
-func (c *APIClient) EstimatePayment(instanceType string, duration int) (int64, error) {
+func (c *APIClient) EstimatePayment(instanceType string, duration int) (float64, error) {
 	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
 	if err != nil {
 		return 0, err
 	}
 
-	priceInt, err := strconv.ParseInt(hardwareBaseInfo.Price, 10, 64)
+	priceInt, err := strconv.ParseFloat(hardwareBaseInfo.Price, 64)
 	if err != nil {
 		return 0, err
 	}
-	return priceInt * int64(duration/3600), nil
+	return priceInt * float64(duration/3600), nil
 }
 
-func (c *APIClient) GetSourceUri(repoUri, walletAddress string, instanceType string, repoBranch, repoOwner, repoName string) (string, error) {
-	var jobSourceUriResult JobSourceUriResult
-
-	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
-	if err != nil {
-		return "", err
-	}
-
-	if walletAddress == "" {
-		return "", fmt.Errorf("no wallet_address provided")
-	}
-	var reqData = map[string]interface{}{
-		"repo_owner":     repoOwner,
-		"repo_name":      repoName,
-		"repo_branch":    repoBranch,
-		"wallet_address": walletAddress,
-		"hardware_id":    hardwareBaseInfo.ID,
-		"repo_uri":       repoUri,
-	}
-
-	if err := c.httpClient.PostJSON(apiSourceUri, reqData, NewResult(&jobSourceUriResult)); err != nil {
-		return "", err
-	}
-	return jobSourceUriResult.JobSourceUri, nil
-}
-
-func (c *APIClient) ReNewTask(taskUuid, txHash, privateKey string, instanceType string, duration int, autoPay bool) (*ReNewTaskResp, error) {
-	if strings.TrimSpace(instanceType) == "" {
-		return nil, fmt.Errorf("invalid instanceType")
+func (c *APIClient) ReNewTask(taskUuid string, duration int, autoPay bool, privateKey string, txHash string) (*ReNewTaskResp, error) {
+	if strings.TrimSpace(taskUuid) == "" {
+		return nil, fmt.Errorf("invalid taskUuid")
 	}
 
 	if !autoPay && privateKey == "" && txHash == "" {
-		return nil, fmt.Errorf("auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
+		return nil, fmt.Errorf("auto_pay off or tx_hash not provided, please provide a txHash or set autoPay to True and provide privateKey")
 	}
 	if txHash == "" {
-		// renew_payment
-		reNewPaymentTxHash, err := c.RenewPayment(taskUuid, privateKey, instanceType, duration)
+		reNewPaymentTxHash, err := c.RenewPayment(taskUuid, duration, privateKey)
 		if err != nil {
 			return nil, err
 		}
@@ -262,46 +253,34 @@ func (c *APIClient) ReNewTask(taskUuid, txHash, privateKey string, instanceType 
 	}
 
 	if txHash != "" && taskUuid != "" {
-		var params = map[string]interface{}{
-			"task_uuid": taskUuid,
-			"duration":  duration,
-			"tx_hash":   txHash,
-		}
+		var params = make(url.Values)
+		params.Set("task_uuid", taskUuid)
+		params.Set("duration", strconv.Itoa(duration))
+		params.Set("tx_hash", txHash)
 
 		var reNewTaskResp ReNewTaskResp
-		if err := c.httpClient.PostJSON(apiReNewTask, params, NewResult(&reNewTaskResp)); err != nil {
+		if err := c.httpClient.PostForm(apiReNewTask, params, NewResult(&reNewTaskResp)); err != nil {
 			return nil, err
 		}
 		return &reNewTaskResp, nil
 	} else {
 		return nil, fmt.Errorf("txHash or taskUuid invalid")
 	}
-
 }
 
-func (c *APIClient) TerminateTask(taskUuid string) (string, error) {
-	var terminateTaskResp TerminateTaskResp
-
+func (c *APIClient) RenewPayment(taskUuid string, duration int, privateKey string) (string, error) {
 	if strings.TrimSpace(taskUuid) == "" {
 		return "", fmt.Errorf("invalid taskUuid")
-	}
-
-	var params map[string]string
-	params["task_uuid"] = taskUuid
-	if err := c.httpClient.PostJSON(apiTerminateTask, params, NewResult(&terminateTaskResp)); err != nil {
-		return "", err
-	}
-	return terminateTaskResp.Id, nil
-}
-
-func (c *APIClient) RenewPayment(taskUuid, privateKey string, instanceType string, duration int) (string, error) {
-	if strings.TrimSpace(instanceType) == "" {
-		return "", fmt.Errorf("invalid instanceType")
 	}
 	if privateKey == "" {
 		return "", fmt.Errorf("no privateKey provided")
 	}
 
+	taskInfo, err := c.TaskInfo(taskUuid)
+	if err != nil {
+		return "", fmt.Errorf("failed to get task info, taskUuid: %s, error: %v", taskUuid, err)
+	}
+	instanceType := taskInfo.Task.TaskDetail.Hardware
 	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
 	if err != nil {
 		return "", err
@@ -312,7 +291,10 @@ func (c *APIClient) RenewPayment(taskUuid, privateKey string, instanceType strin
 	if err != nil {
 		return "", err
 	}
-	priceBigInt := new(big.Int).SetInt64(estimatePrice)
+	priceBigInt, ok := new(big.Int).SetString(fmt.Sprintf("%.f", estimatePrice), 10)
+	if !ok {
+		return "", fmt.Errorf("failed to convert float64 to big.Int")
+	}
 
 	client, err := ethclient.Dial(c.contractDetail.RpcUrl)
 	if err != nil {
@@ -320,19 +302,16 @@ func (c *APIClient) RenewPayment(taskUuid, privateKey string, instanceType strin
 	}
 	defer client.Close()
 
-	// call token contract approve
 	tokenContract, err := contract.NewToken(common.HexToAddress(c.contractDetail.SwanTokenContractAddress), client)
 	if err != nil {
 		return "", err
 	}
 
-	// call payment contract submit_payment
 	paymentContract, err := contract.NewPaymentContract(common.HexToAddress(c.contractDetail.ClientContractAddress), client)
 	if err != nil {
 		return "", err
 	}
 
-	// client contract address
 	approveTransactOpts, err := CreateTransactOpts(client, privateKey)
 	if err != nil {
 		return "", err
@@ -341,40 +320,59 @@ func (c *APIClient) RenewPayment(taskUuid, privateKey string, instanceType strin
 	if err != nil {
 		return "", err
 	}
-	log.Printf("token approve tx: %v \n", approve.Hash().String())
 
-	paymentTransactOpts, err := CreateTransactOpts(client, privateKey)
-	if err != nil {
-		return "", err
-	}
-
-	hardwareIdBigInt := new(big.Int).SetInt64(hardwareId)
-	durationBigInt := new(big.Int).SetInt64(int64(duration))
-	transaction, err := paymentContract.RenewPayment(paymentTransactOpts, taskUuid, hardwareIdBigInt, durationBigInt)
-	if err != nil {
-		return "", fmt.Errorf("failed to renew payment, error: %v", err)
-	}
-	log.Printf("txHash: %v", transaction.Hash().String())
-	return transaction.Hash().String(), nil
-}
-
-func (c *APIClient) verifyHardwareRegion(instanceType, region string) bool {
-	hardwareList, err := c.Hardwares()
-	if err != nil {
-		log.Printf("failed to get hardware, error: %v", err)
-		return false
-	}
-
-	for _, hardware := range hardwareList {
-		if hardware.Name == instanceType {
-			for _, r := range hardware.Region {
-				if region == r || (strings.ToLower(region) == "global" && hardware.Status == "available") {
-					return true
+	tokenApproveHash := approve.Hash().String()
+	timeout := time.After(1 * time.Minute)
+	ticker := time.Tick(3 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			return "", fmt.Errorf("timeout waiting for transaction confirmation, tx: %s", tokenApproveHash)
+		case <-ticker:
+			receipt, err := client.TransactionReceipt(context.Background(), common.HexToHash(tokenApproveHash))
+			if err != nil {
+				if errors.Is(err, ethereum.NotFound) {
+					continue
 				}
+				return "", fmt.Errorf("check swan token Approve tx, error: %+v", err)
+			}
+
+			if receipt != nil && receipt.Status == types.ReceiptStatusSuccessful {
+				fmt.Printf("swan token approve TX Hash: %s \n", tokenApproveHash)
+
+				paymentTransactOpts, err := CreateTransactOpts(client, privateKey)
+				if err != nil {
+					return "", err
+				}
+
+				hardwareIdBigInt := new(big.Int).SetInt64(hardwareId)
+				durationBigInt := new(big.Int).SetInt64(int64(duration))
+				transaction, err := paymentContract.RenewPayment(paymentTransactOpts, taskUuid, hardwareIdBigInt, durationBigInt)
+				if err != nil {
+					return "", fmt.Errorf("failed to renew payment, error: %v", err)
+				}
+				log.Printf("Payment submitted, task_uuid=%s, duration=%d, hardwareId=%d", taskUuid, duration, hardwareId)
+				return transaction.Hash().String(), nil
+			} else if receipt != nil && receipt.Status == 0 {
+				return "", fmt.Errorf("failed to check swan token approve transaction, tx: %s", tokenApproveHash)
 			}
 		}
 	}
-	return false
+}
+
+func (c *APIClient) TerminateTask(taskUuid string) (string, error) {
+	var terminateTaskResp TerminateTaskResp
+
+	if strings.TrimSpace(taskUuid) == "" {
+		return "", fmt.Errorf("invalid taskUuid")
+	}
+
+	var params = make(url.Values)
+	params.Set("task_uuid", taskUuid)
+	if err := c.httpClient.PostForm(apiTerminateTask, params, NewResult(&terminateTaskResp)); err != nil {
+		return "", err
+	}
+	return terminateTaskResp.Id, nil
 }
 
 func (c *APIClient) GetRealUrl(taskUuid string) ([]string, error) {
@@ -396,15 +394,44 @@ func (c *APIClient) GetRealUrl(taskUuid string) ([]string, error) {
 	return deployedUrl, nil
 }
 
-// submitPayment Submit payment for a task
-//
-// Args:
-// task_uuid: unique id returned by `swan_api.create_task`
-// hardware_id: id of cp/hardware configuration set
-// duration: duration of service runtime (seconds).
-//
-// Returns:
-// tx_hash
+func (c *APIClient) getSourceUri(repoUri, walletAddress string, instanceType string, repoBranch, repoOwner, repoName string) (string, error) {
+	var jobSourceUriResult JobSourceUriResult
+
+	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
+	if err != nil {
+		return "", err
+	}
+
+	if walletAddress == "" {
+		return "", fmt.Errorf("no wallet_address provided")
+	}
+	var reqData = make(url.Values)
+	reqData.Set("repo_owner", repoOwner)
+	reqData.Set("repo_name", repoName)
+	reqData.Set("repo_branch", repoBranch)
+	reqData.Set("wallet_address", walletAddress)
+	reqData.Set("hardware_id", strconv.FormatInt(hardwareBaseInfo.ID, 10))
+	reqData.Set("repo_uri", repoUri)
+
+	if err := c.httpClient.PostForm(apiSourceUri, reqData, NewResult(&jobSourceUriResult)); err != nil {
+		return "", err
+	}
+	return jobSourceUriResult.JobSourceUri, nil
+}
+
+func (c *APIClient) verifyHardwareRegion(instanceType, region string) bool {
+	for _, hardware := range c.hardwareList {
+		if hardware.Name == instanceType {
+			for _, r := range hardware.Region {
+				if region == r || (strings.ToLower(region) == "global" && hardware.Status == "available") {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func (c *APIClient) submitPayment(taskUuid, privateKey string, duration int, instanceType string) (string, error) {
 	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
 	if err != nil {
@@ -419,7 +446,11 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration int, ins
 	if err != nil {
 		return "", err
 	}
-	priceBigInt := new(big.Int).SetInt64(estimatePrice)
+
+	priceBigInt, ok := new(big.Int).SetString(fmt.Sprintf("%.f", estimatePrice), 10)
+	if !ok {
+		return "", fmt.Errorf("failed to convert float64 to big.Int")
+	}
 
 	client, err := ethclient.Dial(c.contractDetail.RpcUrl)
 	if err != nil {
@@ -427,19 +458,16 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration int, ins
 	}
 	defer client.Close()
 
-	// call token contract approve
 	tokenContract, err := contract.NewToken(common.HexToAddress(c.contractDetail.SwanTokenContractAddress), client)
 	if err != nil {
 		return "", err
 	}
 
-	// call payment contract submit_payment
 	paymentContract, err := contract.NewPaymentContract(common.HexToAddress(c.contractDetail.ClientContractAddress), client)
 	if err != nil {
 		return "", err
 	}
 
-	// client contract address
 	approveTransactOpts, err := CreateTransactOpts(client, privateKey)
 	if err != nil {
 		return "", err
@@ -451,27 +479,51 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration int, ins
 	if err != nil {
 		return "", err
 	}
-	log.Printf("token approve tx: %v \n", approve.Hash().String())
 
-	paymentTransactOpts, err := CreateTransactOpts(client, privateKey)
-	if err != nil {
-		return "", err
+	tokenApproveHash := approve.Hash().String()
+	timeout := time.After(1 * time.Minute)
+	ticker := time.Tick(3 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			return "", fmt.Errorf("timeout waiting for transaction confirmation, tx: %s", tokenApproveHash)
+		case <-ticker:
+			receipt, err := client.TransactionReceipt(context.Background(), common.HexToHash(tokenApproveHash))
+			if err != nil {
+				if errors.Is(err, ethereum.NotFound) {
+					continue
+				}
+				return "", fmt.Errorf("check swan token Approve tx, error: %+v", err)
+			}
+
+			if receipt != nil && receipt.Status == types.ReceiptStatusSuccessful {
+				fmt.Printf("swan token approve TX Hash: %s \n", tokenApproveHash)
+
+				paymentTransactOpts, err := CreateTransactOpts(client, privateKey)
+				if err != nil {
+					return "", err
+				}
+				transaction, err := paymentContract.SubmitPayment(paymentTransactOpts, taskUuid, hardwareIdBigInt, durationBigInt)
+				if err != nil {
+					return "", fmt.Errorf("failed to submit payment, error: %v", err)
+				}
+				log.Printf("Payment submitted, task_uuid=%s, duration=%d, hardwareId=%d", taskUuid, duration, hardwareId)
+				return transaction.Hash().String(), nil
+			} else if receipt != nil && receipt.Status == 0 {
+				return "", fmt.Errorf("failed to check swan token approve transaction, tx: %s", tokenApproveHash)
+			}
+		}
 	}
-	transaction, err := paymentContract.SubmitPayment(paymentTransactOpts, taskUuid, hardwareIdBigInt, durationBigInt)
-	if err != nil {
-		return "", fmt.Errorf("failed to submit payment, error: %v", err)
-	}
-	log.Printf("Payment submitted, task_uuid=%s, duration=%d, hardwareId=%d", taskUuid, duration, hardwareId)
-	return transaction.Hash().String(), nil
 }
 
 func (c *APIClient) validatePayment(txHash, taskUuid string) (*ValidatePaymentResult, error) {
 	var validatePaymentResult ValidatePaymentResult
 	if txHash != "" && taskUuid != "" {
-		var params map[string]string
-		params["tx_hash"] = txHash
-		params["task_uuid"] = taskUuid
-		if err := c.httpClient.PostJSON(apiValidatePayment, params, NewResult(&validatePaymentResult)); err != nil {
+		var params = make(url.Values)
+		params.Set("tx_hash", txHash)
+		params.Set("task_uuid", taskUuid)
+
+		if err := c.httpClient.PostForm(apiValidatePayment, params, NewResult(&validatePaymentResult)); err != nil {
 			return nil, err
 		}
 		log.Printf("Payment validation request sent, task_uuid=%s, tx_hash=%s \n", taskUuid, txHash)
@@ -502,12 +554,7 @@ func (c *APIClient) getHardwareByInstanceType(instanceType string) (HardwareBase
 		return baseInfo, fmt.Errorf("invalid instanceType")
 	}
 
-	hardwares, err := c.Hardwares()
-	if err != nil {
-		return baseInfo, fmt.Errorf("failed to get hardware, error: %v", err)
-	}
-
-	for _, hardware := range hardwares {
+	for _, hardware := range c.hardwareList {
 		if hardware.Name == instanceType {
 			baseInfo = hardware.HardwareBaseInfo
 			break

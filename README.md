@@ -49,7 +49,7 @@ Steps to get an API Key:
 
 ### Usage
 
-To use Swan SDK, you must first import it and indicate which service you're going to use:
+#### [New client]()
 
 ```go
 import "github.com/swanchain/go-swan-sdk"
@@ -57,90 +57,58 @@ import "github.com/swanchain/go-swan-sdk"
 client := swan.NewAPIClient("<SWAN_API_KEY>")
 ```
 
-Now that you have an `Orchestrator` service, you can create and deploy instance applications as an Orchestrator task with the service.
+#### [Create task]
 
+##### 1. Automatic payment and deployment
 ```go
-var createReq = swan.CreateTaskReq{
-    WalletAddress: "",
-    PrivateKey:    "",
-    RepoUri:       "",
-    AutoPay:       true,
+var req = CreateTaskReq{
+    PrivateKey: "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>",
+    AutoPay:    true,
+    RepoUri:    "<Your_RESOURCE_URL>",
 }
 createTaskResp, err := client.CreateTask(&createReq)
 if err != nil {
-log.Fatalln(err)
+    log.Fatalln(err)
 }
 log.Printf("task result: %v", createTaskResp)
 ```
 
-Then you can follow up task deployment information and the URL for running applications.
-
+##### 2. Manual payment and deployment
 ```go
-// Get task deployment info
-taskInfo, err := client.TaskInfo(createTaskResp.TaskUuid)
-if err != nil {
-log.Fatalln(err)
+var req = CreateTaskReq{
+    PrivateKey: "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>",
+    AutoPay:    false,
+    RepoUri:    "",
 }
-log.Printf("task info: %v", taskInfo)
-
-// Get application instances URL
-appUrls, err := client.GetRealUrl(createTaskResp.TaskUuid)
-if err != nil {
-log.Fatalln(err)
-}
-log.Printf("app urls: %v", appUrls)
-```
-
-## A Sample Tutorial
-
-For more detailed samples, consult [SDK Samples](https://github.com/swanchain/github.com/swanchain/go-swan-sdk/sample).
-
-### Orchestrator
-
-Orchestrator allows you to create task to run application instances to the powerful distributed computing providers network.
-
-#### Create and deploy a task
-
-Deploy a simple application with Swan SDK:
-
-```go
-import (
-    "github.com/swanchain/go-swan-sdk"
-    "log"
-)
-
-client := swan.NewAPIClient("<SWAN_API_KEY>")
-
-var createReq = swan.CreateTaskReq{
-    WalletAddress: "",
-    PrivateKey:    "",
-    RepoUri:       "",
-    AutoPay:       true,
-}
-
-// create task
 createTaskResp, err := client.CreateTask(&createReq)
 if err != nil {
     log.Fatalln(err)
 }
 log.Printf("task result: %v", createTaskResp)
 
-// get task info
-taskInfo, err := client.TaskInfo(createTaskResp.TaskUuid)
+taskUuid := "<TASK_UUID>" // taskUuid: returned by create task
+payAndDeployTaskResp, err := apiClient.PayAndDeployTask(taskUuid, PrivateKey, 3600, "C1ae.small")
 if err != nil {
-   log.Fatalln(err)
+    log.Fatalln(err)
 }
-log.Printf("task info: %v", taskInfo)
-
+log.Printf("pay and deploy task response: %v", payAndDeployTaskResp)
 ```
 
-It may take up to 5 minutes to get the deployment result:
+#### [Get task info By taskUuid]
+```go
+resp, err := client.TaskInfo("<TASK_UUID>")
+if err != nil {
+    log.Fatalln(err)
+}
+log.Printf("task info result: %v", resp)
+```
 
+#### [Get the access url of the application]
 ```go
 // Get application instances URL
-appUrls, err := client.GetRealUrl(createTaskResp.TaskUuid)
+appUrls, err := client.GetRealUrl("<TASK_UUID>")
 if err != nil {
-  log.Fatalln(err)
+	log.Fatalln(err)
 }
 log.Printf("app urls: %v", appUrls)
 ```
@@ -152,91 +120,41 @@ A sample output:
 
 It shows that this task has three applications. Open the URL in the web browser you will view the application's information if it is running correctly.
 
-#### Check information of an existing task
 
-With Orchestrator, you can check information for an existing task to follow up or view task deployment.
+#### [Renewal task]
+
+##### 1. Automatic payment
+```go
+resp, err := apiClient.ReNewTask("<TASK_UUID>", 3600, true,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
+if err != nil {
+	log.Fatalln(err)
+}
+log.Printf("renew task with auto-pay response: %v", resp)
+```
+
+##### 2. Manual payment
+```go
+txHash, err := apiClient.RenewPayment("<TASK_UUID>", 3600, "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>")
+if err != nil {
+	log.Fatalln(err)
+}
+
+resp, err := apiClient.ReNewTask("<TASK_UUID>", 3600, false, "",txHash)
+if err != nil {
+	log.Fatalln(err)
+}
+log.Printf("renew task with manual-pay response: %v", resp)
+```
+
+#### [Terminate Task]
 
 ```go
-import (
-    "github.com/swanchain/go-swan-sdk"
-    "log"
-)
-
-client := swan.NewAPIClient("<SWAN_API_KEY>")
-
-// Get an existing task deployment info
-taskInfo, err := client.TaskInfo(createTaskResp.TaskUuid)
+resp, err := apiClient.TerminateTask("<<TASK_UUID>>")
 if err != nil {
     log.Fatalln(err)
 }
-log.Printf("task info: %v", taskInfo)
+log.Printf("terminate task response: %v", resp)
 ```
-
-#### Access application instances of an existing task
-
-With Orchestrator, you can easily get the deployed application instances for an existing task.
-
-```go
-import (
-"github.com/swanchain/go-swan-sdk"
-"log"
-)
-
-client := swan.NewAPIClient("<SWAN_API_KEY>")
-
-// Get application instances URL
-appUrls, err := client.GetRealUrl(createTaskResp.TaskUuid)
-if err != nil {
-  log.Fatalln(err)
-}
-log.Printf("app urls: %v", appUrls)
-```
-
-#### Renew an existing task
-
-If you have already submitted payment for the renewal of a task, you can use the `tx_hash` with `renew_task` to extend the task.
-
-```go
-import (
-    "github.com/swanchain/go-swan-sdk"
-    "log"
-)
-
-client := swan.NewAPIClient("<SWAN_API_KEY>")
-
-taskUuid := "taskUuid"
-txHash := "txHash"
-privateKey := "privateKey"
-instanceType := "instanceType"
-duration := 3600
-reNewTask, err := client.ReNewTask(taskUuid, txHash, privateKey, instanceType, duration, true)
-if err != nil {
-  log.Fatalln(err)
-}
-log.Printf("renew task result: %v", reNewTask)
-
-```
-
-#### Terminate an existing task
-
-You can also early terminate an existing task and its application instances. By terminating task, you will stop all the related running application instances and thus you will get refund of the remaining task duration.
-
-```go
-import (
-    "github.com/swanchain/go-swan-sdk"
-    "log"
-)
-
-client := swan.NewAPIClient("<SWAN_API_KEY>")
-
-// Terminate an existing task (and its application instances)
-terminateTask, err := client.TerminateTask(taskUuid)
-if err != nil {
-    log.Fatalln(err)
-}
-log.Printf("terminate task result: %v", terminateTask)
-```
-
 
 ## License
 
