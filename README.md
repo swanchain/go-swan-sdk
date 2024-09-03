@@ -14,11 +14,11 @@
 
 ## Quickstart
 
-This guide details the steps needed to install or update the SWAN SDK for Golang. The SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API.
+This guide details the steps needed to install or update the SWAN SDK for Go. The SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API.
 
 ### Installation
 
-To use Swan SDK, you first need to install it and its dependencies. Before installing Swan SDK, install Golang 1.22.3 or later.
+To use Swan SDK, you first need to install it and its dependencies. Before installing Swan SDK, install Go 1.22.3 or later.
 
 
 Install the latest Swan SDK release via **go**:
