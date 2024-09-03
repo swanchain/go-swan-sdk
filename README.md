@@ -87,7 +87,7 @@ if err != nil {
 log.Printf("pay and deploy task response: %v", payAndDeployTaskResp)
 ```
 
-#### [Get task info By taskUuid]
+#### [Get task info By taskUuid]()
 ```go
 resp, err := client.TaskInfo("<TASK_UUID>")
 if err != nil {
@@ -114,7 +114,7 @@ A sample output:
 It shows that this task has three applications. Open the URL in the web browser you will view the application's information if it is running correctly.
 
 
-#### [Renewal task]
+#### [Renewal task]()
 
 ##### 1. Automatic payment
 ```go
@@ -139,7 +139,7 @@ if err != nil {
 log.Printf("renew task with manual-pay response: %v", resp)
 ```
 
-#### [Terminate Task]
+#### [Terminate Task]()
 
 ```go
 resp, err := apiClient.TerminateTask("<TASK_UUID>")
