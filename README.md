@@ -9,6 +9,7 @@
     - [Installation](#installation)
     - [Get Orchestrator API Key](#get-orchestrator-api-key)
     - [Using Case](#Usage)
+- [A Sample Tutorial](#a-sample-tutorial)
 - [License](#license)
 
 
@@ -148,6 +149,11 @@ if err != nil {
 }
 log.Printf("terminate task response: %v", resp)
 ```
+
+## A Sample Tutorial
+
+For more detailed samples, consult [SDK Samples](https://github.com/swanchain/github.com/swanchain/go-swan-sdk/client_test.go).
+
 
 ## License
 
