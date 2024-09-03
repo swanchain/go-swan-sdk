@@ -50,7 +50,7 @@ import "github.com/swanchain/go-swan-sdk"
 client := swan.NewAPIClient("<SWAN_API_KEY>")
 ```
 
-#### [Create task]
+#### [Create task]()
 
 ##### 1. Automatic payment and deployment
 ```go
@@ -96,7 +96,7 @@ if err != nil {
 log.Printf("task info result: %v", resp)
 ```
 
-#### [Get the access url of the application]
+#### [Get the access url of the application]()
 ```go
 // Get application instances URL
 appUrls, err := client.GetRealUrl("<TASK_UUID>")
