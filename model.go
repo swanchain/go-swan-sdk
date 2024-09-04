@@ -187,6 +187,22 @@ type TaskQueryReq struct {
 	Size   uint   `form:"size"`
 }
 
+/*
+	CreateTaskReq
+
+PrivateKey:   Required. The wallet's private key
+InstanceType: The type(name) of the hardware. (Default = `C1ae.small`)
+Region:       The region of the hardware. (Default: global)
+Duration:     The duration of the service runtime in seconds. (Default = 3600)
+AutoPay:      Automatically call the submit payment method on the contract and validate payment to get the task deployed. Otherwise, the user must call the `PayAndDeployTask` function to submit payment method on the contract and validate payment.
+JobSourceUri: Optional. The job source URI to be deployed. If this is provided, app_repo_image and repo_uri are ignored.
+RepoUri:      Optional. The URI of the repo to be deployed. If job_source_uri and app_repo_image are not provided, this is required.
+RepoBranch:   Optional. The branch of the repo to be deployed.
+RepoOwner:    Optional. The owner of the repo to be deployed.
+RepoName:     Optional. The name of the repo to be deployed.
+StartIn:      Optional. The starting time (expected time for the app to be deployed, not mandatory). (Default = 300)
+PreferredCpList:  Optional. A list of preferred cp account address(es).
+*/
 type CreateTaskReq struct {
 	PrivateKey      string   `json:"private_key,omitempty"`
 	InstanceType    string   `json:"instance_type"`

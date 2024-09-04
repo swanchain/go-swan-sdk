@@ -26,9 +26,9 @@ type APIClient struct {
 	hardwareList   []*Hardware
 }
 
-func NewAPIClient(apiKey string, testnet ...bool) *APIClient {
+func NewAPIClient(apiKey string, isTestnet ...bool) *APIClient {
 	host := gatewayMainnet
-	if len(testnet) > 0 && testnet[0] {
+	if len(isTestnet) > 0 && isTestnet[0] {
 		host = gatewayTestnet
 	}
 
@@ -99,6 +99,9 @@ func (c *APIClient) Tasks(req *TaskQueryReq) (total int64, list []*TaskInfo, err
 	return
 }
 
+/*
+Create a task via the orchestrator.
+*/
 func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	var createTaskResp CreateTaskResp
 
@@ -120,8 +123,8 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 		req.StartIn = 300
 	}
 
-	if req.Duration == 0 {
-		req.Duration = 3600
+	if req.Duration < 3600 {
+		return CreateTaskResp{}, fmt.Errorf("duration must be no less than 3600 seconds")
 	}
 
 	if strings.TrimSpace(req.InstanceType) == "" {
