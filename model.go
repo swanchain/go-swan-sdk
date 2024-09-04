@@ -131,12 +131,6 @@ type Requirements struct {
 	Vcpu            string `json:"vcpu"`
 }
 
-type Space struct {
-	ActiveOrder *ActiveOrder `json:"activeOrder"`
-	Name        string       `json:"name"`
-	UUID        string       `json:"uuid"`
-}
-
 type ActiveOrder struct {
 	Config Config `json:"config"`
 }
@@ -150,6 +144,12 @@ type Config struct {
 	Name         string  `json:"name"`
 	PricePerHour float64 `json:"price_per_hour"`
 	Vcpu         int64   `json:"vcpu"`
+}
+
+type Space struct {
+	ActiveOrder *ActiveOrder `json:"activeOrder"`
+	Name        string       `json:"name"`
+	UUID        string       `json:"uuid"`
 }
 
 type PageResult struct {
@@ -188,7 +188,7 @@ type TaskQueryReq struct {
 }
 
 /*
-	CreateTaskReq
+CreateTaskReq
 
 PrivateKey:   Required. The wallet's private key
 InstanceType: The type(name) of the hardware. (Default = `C1ae.small`)
