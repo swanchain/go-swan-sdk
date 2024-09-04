@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -51,10 +50,10 @@ func (c *HttpClient) PostJSON(api string, data any, dest any) error {
 }
 
 func (c *HttpClient) Request(method string, api string, body io.Reader, dest any, contentType ...string) (err error) {
-	paras := ""
+	//paras := ""
 	if body != nil {
 		rb, _ := io.ReadAll(body)
-		paras = string(rb)
+		//paras = string(rb)
 		body = bytes.NewReader(rb)
 	}
 
@@ -88,7 +87,7 @@ func (c *HttpClient) Request(method string, api string, body io.Reader, dest any
 	if err != nil {
 		return
 	}
-	fmt.Printf("method: %s, api: %s, paras: %s, response: %s\n", method, api, paras, string(bd))
+	//fmt.Printf("method: %s, api: %s, paras: %s, response: %s\n", method, api, paras, string(bd))
 
 	if err = json.Unmarshal(bd, dest); err != nil {
 		return

@@ -6,9 +6,20 @@
 ## Table Of Contents<!-- omit in toc -->
 
 - [Quickstart](#quickstart)
-    - [Installation](#installation)
-    - [Get Orchestrator API Key](#get-orchestrator-api-key)
-    - [Using Case](#Usage)
+  - [Installation](#installation)
+  - [Get Orchestrator API Key](#get-orchestrator-api-key)
+  - [Usage](#usage)
+    - [New client](#new-client)
+    - [Create task](#create-task)
+      - [1. Automatic payment and deployment](#1-automatic-payment-and-deployment)
+      - [2. Manual payment and deployment](#2-manual-payment-and-deployment)
+    - [Get the access url of the application](#get-the-access-url-of-the-application)
+    - [Renewal task](#renewal-task)
+      - [1. Automatic payment](#1-automatic-payment)
+      - [2. Manual payment](#2-manual-payment)
+    - [Terminate Task](#terminate-task)
+    - [Get Task Detail](#get-task-detail)
+    - [Get Task List](#get-task-list)
 - [A Sample Tutorial](#a-sample-tutorial)
 - [License](#license)
 
@@ -57,8 +68,8 @@ client := swan.NewAPIClient("<SWAN_API_KEY>")
 ```go
 var req = CreateTaskReq{
     PrivateKey: "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>",
-    AutoPay:    true,
-    RepoUri:    "<Your_RESOURCE_URL>",
+    AutoPay:    true, 
+    RepoUri:    "<Your_RESOURCE_URL>",    
 }
 createTaskResp, err := client.CreateTask(&createReq)
 if err != nil {
@@ -71,8 +82,10 @@ log.Printf("task result: %v", createTaskResp)
 ```go
 var req = CreateTaskReq{
     PrivateKey: "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>",
-    AutoPay:    false,
-    RepoUri:    "",
+    AutoPay:      false,
+    RepoUri:      "<Your_RESOURCE_URL>",
+    Duration:     3600, 
+    InstanceType: "C1ae.small", 
 }
 createTaskResp, err := client.CreateTask(&createReq)
 if err != nil {
@@ -81,20 +94,11 @@ if err != nil {
 log.Printf("task result: %v", createTaskResp)
 
 taskUuid := "<TASK_UUID>" // taskUuid: returned by create task
-payAndDeployTaskResp, err := apiClient.PayAndDeployTask(taskUuid, PrivateKey, 3600, "C1ae.small")
+payAndDeployTaskResp, err := apiClient.PayAndDeployTask(taskUuid, <YOUR_WALLET_ADDRESS_PRIVATE_KEY>, <Duration>, <InstanceType>)
 if err != nil {
     log.Fatalln(err)
 }
 log.Printf("pay and deploy task response: %v", payAndDeployTaskResp)
-```
-
-#### [Get task info By taskUuid]()
-```go
-resp, err := client.TaskInfo("<TASK_UUID>")
-if err != nil {
-    log.Fatalln(err)
-}
-log.Printf("task info result: %v", resp)
 ```
 
 #### [Get the access url of the application]()
@@ -119,7 +123,7 @@ It shows that this task has three applications. Open the URL in the web browser 
 
 ##### 1. Automatic payment
 ```go
-resp, err := apiClient.ReNewTask("<TASK_UUID>", 3600, true,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
+resp, err := apiClient.ReNewTask("<TASK_UUID>", <Duration>, true,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
 if err != nil {
 	log.Fatalln(err)
 }
@@ -128,12 +132,12 @@ log.Printf("renew task with auto-pay response: %v", resp)
 
 ##### 2. Manual payment
 ```go
-txHash, err := apiClient.RenewPayment("<TASK_UUID>", 3600, "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>")
+txHash, err := apiClient.RenewPayment("<TASK_UUID>", <Duration>, "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>")
 if err != nil {
 	log.Fatalln(err)
 }
 
-resp, err := apiClient.ReNewTask("<TASK_UUID>", 3600, false, "",txHash)
+resp, err := apiClient.ReNewTask("<TASK_UUID>", <Duration>, false, "",txHash)
 if err != nil {
 	log.Fatalln(err)
 }
@@ -148,6 +152,30 @@ if err != nil {
     log.Fatalln(err)
 }
 log.Printf("terminate task response: %v", resp)
+```
+
+#### [Get Task Detail]()
+```go
+resp, err := apiClient.TaskInfo("<TASK_UUID>")
+if err != nil {
+    log.Fatalln(err)
+}
+log.Printf("get task info response: %v", resp)
+```
+
+#### [Get Task List]()
+```go
+var req = &TaskQueryReq{
+    Wallet: "<YOUR_WALLET_ADDRESS>",
+    Page:   0,
+    Size:   10,
+}
+
+total, resp, err := apiClient.Tasks(req)
+if err != nil {
+    log.Fatalln(err)
+}
+log.Printf("get task list response, total: %d, data: %v", total, resp)
 ```
 
 ## A Sample Tutorial
