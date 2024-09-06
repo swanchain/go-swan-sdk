@@ -4,31 +4,33 @@
   - [NewClient](#newclient)
   - [Hardwares](#hardwares)
     - [Hardware](#hardware)
-    - [HardwareBaseInfo](#hardwarebaseinfo)
-    - [RegionDetail](#regiondetail)
   - [Create task](#create-task)
     - [CreateTaskReq](#createtaskreq)
     - [CreateTaskResp](#createtaskresp)
-    - [Task](#task)
-    - [TaskDetail](#taskdetail)
-    - [Requirements](#requirements)
-    - [ActiveOrder](#activeorder)
-    - [Config](#config)
   - [PayAndDeployTask](#payanddeploytask)
     - [PaymentResult](#paymentresult)
   - [EstimatePayment](#estimatepayment)
   - [ReNewTask](#renewtask)
     - [ReNewTaskResp](#renewtaskresp)
-    - [ConfigOrder](#configorder)
-      - [Task](#task-1)
   - [RenewPayment](#renewpayment)
   - [TerminateTask](#terminatetask)
   - [GetRealUrl](#getrealurl)
   - [Tasks](#tasks)
   - [TaskInfo](#taskinfo)
-    - [TaskInfo](#taskinfo-1)
-    - [ComputingProvider](#computingprovider)
-    - [Job](#job)
+- [Models](#models)
+  - [HardwareBaseInfo](#hardwarebaseinfo)
+  - [RegionDetail](#regiondetail)
+  - [Task](#task)
+  - [TaskDetail](#taskdetail)
+  - [Requirements](#requirements)
+  - [Space](#space)
+  - [ActiveOrder](#activeorder)
+  - [Config](#config)
+  - [ConfigOrder](#configorder)
+  - [Task](#task)
+  - [TaskInfo](#taskinfo)
+  - [ComputingProvider](#computingprovider)
+  - [Job](#job)
 
 ## NewClient
 
@@ -63,32 +65,12 @@ Outputs:
 
 ### Hardware
 
-| Field Name       | Type                          | Description                                                                                                                                            |
-| ---------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| HardwareBaseInfo | `HardwareBaseInfo` (embedded) | Contains the basic details of the hardware.                                                                                                            |
-| Type             | `string`                      | The type of the hardware (distinct from `Type` in `HardwareBaseInfo`).                                                                                 |
-| Region           | `[]string`                    | A slice of strings representing the regions where this hardware is available.                                                                          |
-| RegionDetails    | `map[string]*RegionDetail`    | A map where the key is the region name, and the value is a pointer to `RegionDetail` struct, containing detailed information for that specific region. |
-
-### HardwareBaseInfo
-
-| Field Name  | Type     | Description                           |
-| ----------- | -------- | ------------------------------------- |
-| Description | `string` | A description of the hardware.        |
-| ID          | `int64`  | A unique identifier for the hardware. |
-| Name        | `string` | The name of the hardware.             |
-| Price       | `string` | The price of the hardware.            |
-| Status      | `string` | The status of the hardware.           |
-| Type        | `string` | The type of the hardware.             |
-
-### RegionDetail
-
-| Field Name        | Type         | Description                                                                                 |
-| ----------------- | ------------ | ------------------------------------------------------------------------------------------- |
-| AvailableResource | `int64`      | The amount of available resources for the hardware in this region.                          |
-| DirectAccessCp    | `[][]string` | A 2D slice of strings representing the direct access control points (CPs) for the hardware. |
-| NoneCollateral    | `int64`      | The amount of resources that have no collateral in this region.                             |
-| Whitelist         | `int64`      | The number of whitelisted items related to the hardware in this region.                     |
+| Field Name       | Type                                      | Description                                                                                                                                            |
+| ---------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| HardwareBaseInfo | [HardwareBaseInfo](#hardwarebaseinfo)     | Contains the basic details of the hardware.                                                                                                            |
+| Type             | `string`                                  | The type of the hardware (distinct from `Type` in `HardwareBaseInfo`).                                                                                 |
+| Region           | `[]string`                                | A slice of strings representing the regions where this hardware is available.                                                                          |
+| RegionDetails    | map[string]*[RegionDetail](#regiondetail) | A map where the key is the region name, and the value is a pointer to `RegionDetail` struct, containing detailed information for that specific region. |
 
 ## Create task
 ```go
@@ -116,99 +98,16 @@ Out:
 ### CreateTaskResp
 The `CreateTaskResp` struct represents the response returned after creating a task.
 
-| Field Name   | Type          | Description                                                          |
-| ------------ | ------------- | -------------------------------------------------------------------- |
-| Task         | `Task`        | The `Task` struct containing details about the created task.         |
-| ConfigOrder  | `ConfigOrder` | The `ConfigOrder` struct containing the configuration order details. |
-| TxHash       | `string`      | Transaction hash for the task creation.                              |
-| Id           | `string`      | Unique identifier for the task.                                      |
-| TaskUuid     | `string`      | Universally unique identifier for the task.                          |
-| InstanceType | `string`      | Type of instance created for the task.                               |
-| Price        | `float64`     | Price for the task.                                                  |
+| Field Name   | Type                        | Description                                                          |
+| ------------ | --------------------------- | -------------------------------------------------------------------- |
+| Task         | `Task`                      | The `Task` struct containing details about the created task.         |
+| ConfigOrder  | [ConfigOrder](#configorder) | The `ConfigOrder` struct containing the configuration order details. |
+| TxHash       | `string`                    | Transaction hash for the task creation.                              |
+| Id           | `string`                    | Unique identifier for the task.                                      |
+| TaskUuid     | `string`                    | Universally unique identifier for the task.                          |
+| InstanceType | `string`                    | Type of instance created for the task.                               |
+| Price        | `float64`                   | Price for the task.                                                  |
 
-### Task
-
-| Field Name    | Type          | Description                                                              |
-| ------------- | ------------- | ------------------------------------------------------------------------ |
-| Comments      | `string`      | Comments or notes about the task.                                        |
-| CreatedAt     | `int64`       | Timestamp when the task was created.                                     |
-| EndAt         | `int64`       | Timestamp when the task ended.                                           |
-| ID            | `int64`       | Unique identifier for the task.                                          |
-| LeadingJobID  | `string`      | Identifier for the leading job associated with this task.                |
-| Name          | `string`      | Name of the task.                                                        |
-| RefundAmount  | `string`      | Amount to be refunded for the task.                                      |
-| RefundWallet  | `string`      | Wallet address where the refund should be sent.                          |
-| Source        | `string`      | Source of the task.                                                      |
-| StartAt       | `int64`       | Timestamp when the task started.                                         |
-| StartIn       | `int64`       | Delay (in seconds) before the task starts.                               |
-| Status        | `string`      | Current status of the task.                                              |
-| TaskDetail    | `*TaskDetail` | Pointer to the `TaskDetail` struct containing detailed task information. |
-| TaskDetailCid | `string`      | CID (Content Identifier) for the task details.                           |
-| TxHash        | `any`         | Transaction hash associated with the task.                               |
-| Type          | `string`      | Type of the task.                                                        |
-| UpdatedAt     | `int64`       | Timestamp when the task was last updated.                                |
-| UserID        | `int64`       | Unique identifier for the user associated with the task.                 |
-| UUID          | `string`      | Universally unique identifier for the task.                              |
-
-### TaskDetail
-
-| Field Name        | Type            | Description                                                            |
-| ----------------- | --------------- | ---------------------------------------------------------------------- |
-| Amount            | `float64`       | Amount associated with the task.                                       |
-| BidderLimit       | `int64`         | Limit on the number of bidders.                                        |
-| CreatedAt         | `int64`         | Timestamp when the task detail was created.                            |
-| DCCSelectedCpList | `any`           | List of selected control points.                                       |
-| Duration          | `int64`         | Duration (in minutes or hours) for which the task will run.            |
-| EndAt             | `int64`         | Timestamp when the task ends.                                          |
-| Hardware          | `string`        | Hardware configuration for the task.                                   |
-| JobResultURI      | `string`        | URI where the job results can be accessed.                             |
-| JobSourceURI      | `string`        | URI where the job source is located.                                   |
-| PricePerHour      | `string`        | Price per hour for the task.                                           |
-| Requirements      | `*Requirements` | Pointer to the `Requirements` struct containing resource requirements. |
-| Space             | `*Space`        | Pointer to the `Space` struct for storage space details.               |
-| StartAt           | `int64`         | Timestamp when the task starts.                                        |
-| Status            | `string`        | Current status of the task.                                            |
-| StorageSource     | `string`        | Source of the storage used by the task.                                |
-| Type              | `string`        | Type of the task.                                                      |
-| UpdatedAt         | `int64`         | Timestamp when the task detail was last updated.                       |
-
-### Requirements
-
-The `Requirements` struct defines the hardware and resource requirements for the task.
-
-| Field Name      | Type     | Description                                  |
-| --------------- | -------- | -------------------------------------------- |
-| Hardware        | `string` | Hardware required for the task.              |
-| HardwareType    | `string` | Type of hardware required.                   |
-| Memory          | `string` | Memory required for the task.                |
-| PreferredCpList | `any`    | List of preferred control points.            |
-| Region          | `string` | Region where the hardware should be located. |
-| Storage         | `string` | Storage requirements for the task.           |
-| UpdateMaxLag    | `any`    | Maximum allowable lag for updates.           |
-| Vcpu            | `string` | Number of virtual CPUs required.             |
-
-### ActiveOrder
-
-The `ActiveOrder` struct contains configuration details for an active order.
-
-| Field Name | Type     | Description                                               |
-| ---------- | -------- | --------------------------------------------------------- |
-| Config     | `Config` | The `Config` struct containing the configuration details. |
-
-### Config
-
-The `Config` struct defines the configuration of a hardware order, including pricing and resource allocation.
-
-| Field Name   | Type      | Description                                 |
-| ------------ | --------- | ------------------------------------------- |
-| Description  | `string`  | Description of the hardware configuration.  |
-| Hardware     | `string`  | Hardware associated with the configuration. |
-| HardwareID   | `int64`   | Unique identifier for the hardware.         |
-| HardwareType | `string`  | Type of hardware used.                      |
-| Memory       | `int64`   | Amount of memory allocated.                 |
-| Name         | `string`  | Name of the configuration.                  |
-| PricePerHour | `float64` | Price per hour for the hardware.            |
-| Vcpu         | `int64`   | Number of virtual CPUs allocated.           |
 
 
 ## PayAndDeployTask
@@ -228,26 +127,10 @@ Out:
 ### PaymentResult
 The `PaymentResult` struct represents the response returned after creating a task.
 
-| Field Name      | Type     | Description                                                           |
-| --------------- | -------- | --------------------------------------------------------------------- |
-| ConfigID        | `int64`  | Unique identifier for the configuration.                              |
-| CreatedAt       | `int64`  | Timestamp when the configuration order was created.                   |
-| Duration        | `int64`  | Duration (in minutes or hours) of the configuration order.            |
-| EndedAt         | `int`    | Timestamp when the configuration order ended.                         |
-| ErrorCode       | `int`    | Error code associated with the configuration order, if any.           |
-| ID              | `int64`  | Unique identifier for the order.                                      |
-| OrderType       | `string` | Type of the order.                                                    |
-| PreferredCpList | `any`    | List of preferred control points (CPs) for the configuration order.   |
-| RefundTxHash    | `string` | Transaction hash for the refund associated with the order.            |
-| Region          | `string` | Region where the configuration is applied.                            |
-| SpaceID         | `string` | Identifier for the space associated with the configuration order.     |
-| StartIn         | `int64`  | Delay (in seconds) before the configuration order starts.             |
-| StartedAt       | `int64`  | Timestamp when the configuration order started.                       |
-| Status          | `string` | Current status of the configuration order.                            |
-| TaskUUID        | `string` | Universally unique identifier for the task associated with the order. |
-| TxHash          | `string` | Transaction hash associated with the order.                           |
-| UpdatedAt       | `int64`  | Timestamp when the configuration order was last updated.              |
-| UUID            | `string` | Universally unique identifier for the configuration order.            |
+| Field Name  | Type                                  | Description                               |
+| ----------- | ------------------------------------- | ----------------------------------------- |
+| ConfigOrder | [ConfigOrder](#configorder)(embedded) | Information about the configuration order |
+
 
 
 ## EstimatePayment
@@ -286,56 +169,6 @@ Output:
 | ConfigOrder | `ConfigOrder` | The `ConfigOrder` struct containing details about the configuration order. |
 | Task        | `Task`        | The `Task` struct containing details about the task.                       |
 
-### ConfigOrder
-
-The `ConfigOrder` struct provides detailed information about the configuration order associated with the task renewal.
-
-| Field Name      | Type     | Description                                                           |
-| --------------- | -------- | --------------------------------------------------------------------- |
-| ConfigID        | `int64`  | Unique identifier for the configuration.                              |
-| CreatedAt       | `int64`  | Timestamp when the configuration order was created.                   |
-| Duration        | `int64`  | Duration (in minutes or hours) of the configuration order.            |
-| EndedAt         | `int`    | Timestamp when the configuration order ended.                         |
-| ErrorCode       | `int`    | Error code associated with the configuration order, if any.           |
-| ID              | `int64`  | Unique identifier for the order.                                      |
-| OrderType       | `string` | Type of the order.                                                    |
-| PreferredCpList | `any`    | List of preferred control points (CPs) for the configuration order.   |
-| RefundTxHash    | `string` | Transaction hash for the refund associated with the order.            |
-| Region          | `string` | Region where the configuration is applied.                            |
-| SpaceID         | `string` | Identifier for the space associated with the configuration order.     |
-| StartIn         | `int64`  | Delay (in seconds) before the configuration order starts.             |
-| StartedAt       | `int64`  | Timestamp when the configuration order started.                       |
-| Status          | `string` | Current status of the configuration order.                            |
-| TaskUUID        | `string` | Universally unique identifier for the task associated with the order. |
-| TxHash          | `string` | Transaction hash associated with the order.                           |
-| UpdatedAt       | `int64`  | Timestamp when the configuration order was last updated.              |
-| UUID            | `string` | Universally unique identifier for the configuration order.            |
-
-#### Task
-
-The `Task` struct contains information about the task, including its lifecycle and associated details.
-
-| Field Name    | Type          | Description                                                              |
-| ------------- | ------------- | ------------------------------------------------------------------------ |
-| Comments      | `string`      | Comments or notes about the task.                                        |
-| CreatedAt     | `int64`       | Timestamp when the task was created.                                     |
-| EndAt         | `int64`       | Timestamp when the task ended.                                           |
-| ID            | `int64`       | Unique identifier for the task.                                          |
-| LeadingJobID  | `string`      | Identifier for the leading job associated with this task.                |
-| Name          | `string`      | Name of the task.                                                        |
-| RefundAmount  | `string`      | Amount to be refunded for the task.                                      |
-| RefundWallet  | `string`      | Wallet address where the refund should be sent.                          |
-| Source        | `string`      | Source of the task.                                                      |
-| StartAt       | `int64`       | Timestamp when the task started.                                         |
-| StartIn       | `int64`       | Delay (in seconds) before the task starts.                               |
-| Status        | `string`      | Current status of the task.                                              |
-| TaskDetail    | `*TaskDetail` | Pointer to the `TaskDetail` struct containing detailed task information. |
-| TaskDetailCid | `string`      | CID (Content Identifier) for the task details.                           |
-| TxHash        | `any`         | Transaction hash associated with the task.                               |
-| Type          | `string`      | Type of the task.                                                        |
-| UpdatedAt     | `int64`       | Timestamp when the task was last updated.                                |
-| UserID        | `int64`       | Unique identifier for the user associated with the task.                 |
-| UUID          | `string`      | Universally unique identifier for the task.                              |
 
 ## RenewPayment
 ```go
@@ -410,16 +243,186 @@ Input:
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
 
 Output:
-### TaskInfo
+
+
+
+# Models
+
+## HardwareBaseInfo
+
+| Field Name  | Type     | Description                           |
+| ----------- | -------- | ------------------------------------- |
+| Description | `string` | A description of the hardware.        |
+| ID          | `int64`  | A unique identifier for the hardware. |
+| Name        | `string` | The name of the hardware.             |
+| Price       | `string` | The price of the hardware.            |
+| Status      | `string` | The status of the hardware.           |
+| Type        | `string` | The type of the hardware.             |
+
+## RegionDetail
+
+| Field Name        | Type         | Description                                                                                 |
+| ----------------- | ------------ | ------------------------------------------------------------------------------------------- |
+| AvailableResource | `int64`      | The amount of available resources for the hardware in this region.                          |
+| DirectAccessCp    | `[][]string` | A 2D slice of strings representing the direct access control points (CPs) for the hardware. |
+| NoneCollateral    | `int64`      | The amount of resources that have no collateral in this region.                             |
+| Whitelist         | `int64`      | The number of whitelisted items related to the hardware in this region.                     |
+
+## Task
+
+| Field Name    | Type                       | Description                                                              |
+| ------------- | -------------------------- | ------------------------------------------------------------------------ |
+| Comments      | `string`                   | Comments or notes about the task.                                        |
+| CreatedAt     | `int64`                    | Timestamp when the task was created.                                     |
+| EndAt         | `int64`                    | Timestamp when the task ended.                                           |
+| ID            | `int64`                    | Unique identifier for the task.                                          |
+| LeadingJobID  | `string`                   | Identifier for the leading job associated with this task.                |
+| Name          | `string`                   | Name of the task.                                                        |
+| RefundAmount  | `string`                   | Amount to be refunded for the task.                                      |
+| RefundWallet  | `string`                   | Wallet address where the refund should be sent.                          |
+| Source        | `string`                   | Source of the task.                                                      |
+| StartAt       | `int64`                    | Timestamp when the task started.                                         |
+| StartIn       | `int64`                    | Delay (in seconds) before the task starts.                               |
+| Status        | `string`                   | Current status of the task.                                              |
+| TaskDetail    | *[TaskDetail](#taskdetail) | Pointer to the `TaskDetail` struct containing detailed task information. |
+| TaskDetailCid | `string`                   | CID (Content Identifier) for the task details.                           |
+| TxHash        | `any`                      | Transaction hash associated with the task.                               |
+| Type          | `string`                   | Type of the task.                                                        |
+| UpdatedAt     | `int64`                    | Timestamp when the task was last updated.                                |
+| UserID        | `int64`                    | Unique identifier for the user associated with the task.                 |
+| UUID          | `string`                   | Universally unique identifier for the task.                              |
+
+## TaskDetail
+
+| Field Name        | Type                           | Description                                                            |
+| ----------------- | ------------------------------ | ---------------------------------------------------------------------- |
+| Amount            | `float64`                      | Amount associated with the task.                                       |
+| BidderLimit       | `int64`                        | Limit on the number of bidders.                                        |
+| CreatedAt         | `int64`                        | Timestamp when the task detail was created.                            |
+| DCCSelectedCpList | `any`                          | List of selected control points.                                       |
+| Duration          | `int64`                        | Duration (in minutes or hours) for which the task will run.            |
+| EndAt             | `int64`                        | Timestamp when the task ends.                                          |
+| Hardware          | `string`                       | Hardware configuration for the task.                                   |
+| JobResultURI      | `string`                       | URI where the job results can be accessed.                             |
+| JobSourceURI      | `string`                       | URI where the job source is located.                                   |
+| PricePerHour      | `string`                       | Price per hour for the task.                                           |
+| Requirements      | *[Requirements](#requirements) | Pointer to the `Requirements` struct containing resource requirements. |
+| Space             | *[Space](#space)               | Pointer to the `Space` struct for storage space details.               |
+| StartAt           | `int64`                        | Timestamp when the task starts.                                        |
+| Status            | `string`                       | Current status of the task.                                            |
+| StorageSource     | `string`                       | Source of the storage used by the task.                                |
+| Type              | `string`                       | Type of the task.                                                      |
+| UpdatedAt         | `int64`                        | Timestamp when the task detail was last updated.                       |
+
+## Requirements
+
+The `Requirements` struct defines the hardware and resource requirements for the task.
+
+| Field Name      | Type     | Description                                  |
+| --------------- | -------- | -------------------------------------------- |
+| Hardware        | `string` | Hardware required for the task.              |
+| HardwareType    | `string` | Type of hardware required.                   |
+| Memory          | `string` | Memory required for the task.                |
+| PreferredCpList | `any`    | List of preferred control points.            |
+| Region          | `string` | Region where the hardware should be located. |
+| Storage         | `string` | Storage requirements for the task.           |
+| UpdateMaxLag    | `any`    | Maximum allowable lag for updates.           |
+| Vcpu            | `string` | Number of virtual CPUs required.             |
+
+## Space
+
+| Field Name  | Type                         | Description                                                                |
+| ----------- | ---------------------------- | -------------------------------------------------------------------------- |
+| ActiveOrder | *[ActiveOrder](#activeorder) | Pointer to the `ActiveOrder` struct representing the current active order. |
+| Name        | `string`                     | The name of the space.                                                     |
+| UUID        | `string`                     | The universally unique identifier (UUID) of the space.                     |
+
+
+## ActiveOrder
+
+The `ActiveOrder` struct contains configuration details for an active order.
+
+| Field Name | Type              | Description                                               |
+| ---------- | ----------------- | --------------------------------------------------------- |
+| Config     | [Config](#config) | The `Config` struct containing the configuration details. |
+
+## Config
+
+The `Config` struct defines the configuration of a hardware order, including pricing and resource allocation.
+
+| Field Name   | Type      | Description                                 |
+| ------------ | --------- | ------------------------------------------- |
+| Description  | `string`  | Description of the hardware configuration.  |
+| Hardware     | `string`  | Hardware associated with the configuration. |
+| HardwareID   | `int64`   | Unique identifier for the hardware.         |
+| HardwareType | `string`  | Type of hardware used.                      |
+| Memory       | `int64`   | Amount of memory allocated.                 |
+| Name         | `string`  | Name of the configuration.                  |
+| PricePerHour | `float64` | Price per hour for the hardware.            |
+| Vcpu         | `int64`   | Number of virtual CPUs allocated.           |
+
+## ConfigOrder
+
+The `ConfigOrder` struct provides detailed information about the configuration order associated with the task.
+
+| Field Name      | Type     | Description                                                           |
+| --------------- | -------- | --------------------------------------------------------------------- |
+| ConfigID        | `int64`  | Unique identifier for the configuration.                              |
+| CreatedAt       | `int64`  | Timestamp when the configuration order was created.                   |
+| Duration        | `int64`  | Duration (in minutes or hours) of the configuration order.            |
+| EndedAt         | `int`    | Timestamp when the configuration order ended.                         |
+| ErrorCode       | `int`    | Error code associated with the configuration order, if any.           |
+| ID              | `int64`  | Unique identifier for the order.                                      |
+| OrderType       | `string` | Type of the order.                                                    |
+| PreferredCpList | `any`    | List of preferred control points (CPs) for the configuration order.   |
+| RefundTxHash    | `string` | Transaction hash for the refund associated with the order.            |
+| Region          | `string` | Region where the configuration is applied.                            |
+| SpaceID         | `string` | Identifier for the space associated with the configuration order.     |
+| StartIn         | `int64`  | Delay (in seconds) before the configuration order starts.             |
+| StartedAt       | `int64`  | Timestamp when the configuration order started.                       |
+| Status          | `string` | Current status of the configuration order.                            |
+| TaskUUID        | `string` | Universally unique identifier for the task associated with the order. |
+| TxHash          | `string` | Transaction hash associated with the order.                           |
+| UpdatedAt       | `int64`  | Timestamp when the configuration order was last updated.              |
+| UUID            | `string` | Universally unique identifier for the configuration order.            |
+
+## Task
+
+The `Task` struct contains information about the task, including its lifecycle and associated details.
+
+| Field Name    | Type          | Description                                                              |
+| ------------- | ------------- | ------------------------------------------------------------------------ |
+| Comments      | `string`      | Comments or notes about the task.                                        |
+| CreatedAt     | `int64`       | Timestamp when the task was created.                                     |
+| EndAt         | `int64`       | Timestamp when the task ended.                                           |
+| ID            | `int64`       | Unique identifier for the task.                                          |
+| LeadingJobID  | `string`      | Identifier for the leading job associated with this task.                |
+| Name          | `string`      | Name of the task.                                                        |
+| RefundAmount  | `string`      | Amount to be refunded for the task.                                      |
+| RefundWallet  | `string`      | Wallet address where the refund should be sent.                          |
+| Source        | `string`      | Source of the task.                                                      |
+| StartAt       | `int64`       | Timestamp when the task started.                                         |
+| StartIn       | `int64`       | Delay (in seconds) before the task starts.                               |
+| Status        | `string`      | Current status of the task.                                              |
+| TaskDetail    | `*TaskDetail` | Pointer to the `TaskDetail` struct containing detailed task information. |
+| TaskDetailCid | `string`      | CID (Content Identifier) for the task details.                           |
+| TxHash        | `any`         | Transaction hash associated with the task.                               |
+| Type          | `string`      | Type of the task.                                                        |
+| UpdatedAt     | `int64`       | Timestamp when the task was last updated.                                |
+| UserID        | `int64`       | Unique identifier for the user associated with the task.                 |
+| UUID          | `string`      | Universally unique identifier for the task.                              |
+
+
+## TaskInfo
 
 | Field Name | Type                   | Description                                           |
 | ---------- | ---------------------- | ----------------------------------------------------- |
-| Providers  | `[]*ComputingProvider` | List of computing providers associated with the task. |
-| Orders     | `[]*ConfigOrder`       | List of configuration orders related to the task.     |
-| Jobs       | `[]*Job`               | List of jobs related to the task.                     |
-| Task       | `Task`                 | The task itself.                                      |
+| Providers  | []*[ComputingProvider](#computingprovider) | List of computing providers associated with the task. |
+| Orders     | []*[ConfigOrder](#configorder)       | List of configuration orders related to the task.     |
+| Jobs       | []*[Job](#job)               | List of jobs related to the task.                     |
+| Task       | [Task](#task)                 | The task itself.                                      |
 
-### ComputingProvider
+## ComputingProvider
 
 The `ComputingProvider` struct contains information about computing providers, including their location, status, and other relevant details.
 
@@ -443,7 +446,7 @@ The `ComputingProvider` struct contains information about computing providers, i
 | Version          | `string`   | Version of the computing provider's software.                                    |
 | WorkerAddress    | `string`   | Address of the worker associated with the provider.                              |
 
-### Job
+## Job
 
 The `Job` struct contains details about individual jobs, including logs, status, and associated metadata.
 
