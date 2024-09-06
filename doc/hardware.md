@@ -1,4 +1,4 @@
-| instance_name  | type   | description                        | price |
+| instance_type  | resource_type   | description                        | price |
 | :------------- | :----- | :--------------------------------- | ----: |
 | C1ae.small     | CPU    | CPU only · 2 vCPU · 2 GiB          |   0.0 |
 | C1ae.medium    | CPU    | CPU only · 4 vCPU · 4 GiB          |   1.0 |
