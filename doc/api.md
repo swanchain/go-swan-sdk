@@ -242,6 +242,7 @@ Outputs:
 # Models
 
 ## HardwareBaseInfo
+The `HardwareBaseInfo` struct holds the fundamental details about the hardware.
 
 | Field Name  | Type     | Description                           |
 | ----------- | -------- | ------------------------------------- |
@@ -253,6 +254,7 @@ Outputs:
 | Type        | `string` | The type of the hardware.             |
 
 ## RegionDetail
+The `RegionDetail` struct, containing detailed information for that specific region.
 
 | Field Name        | Type         | Description                                                                                 |
 | ----------------- | ------------ | ------------------------------------------------------------------------------------------- |
@@ -262,6 +264,7 @@ Outputs:
 | Whitelist         | `int64`      | The number of whitelisted items related to the hardware in this region.                     |
 
 ## Task
+The `Task` struct contains information about a task, including its lifecycle and associated details.
 
 | Field Name    | Type                       | Description                                                              |
 | ------------- | -------------------------- | ------------------------------------------------------------------------ |
@@ -286,6 +289,7 @@ Outputs:
 | UUID          | `string`                   | Universally unique identifier for the task.                              |
 
 ## TaskDetail
+The `TaskDetail` struct contains detailed information about the task, including resource requirements and status.
 
 | Field Name        | Type                           | Description                                                            |
 | ----------------- | ------------------------------ | ---------------------------------------------------------------------- |
@@ -323,6 +327,7 @@ The `Requirements` struct defines the hardware and resource requirements for the
 | Vcpu            | `string` | Number of virtual CPUs required.             |
 
 ## Space
+The `Space` struct represents a space entity that includes information about its active order, name, and universally unique identifier (UUID).
 
 | Field Name  | Type                         | Description                                                                |
 | ----------- | ---------------------------- | -------------------------------------------------------------------------- |
