@@ -218,7 +218,7 @@ Outputs:
 | Field Name | Type                       | Description                  |
 | ---------- | -------------------------- | ---------------------------- |
 | total      | int64                      | The total of data.           |
-| list       | []*[TaskInfo](#taskinfo-1) | The application access urls. |
+| list       | []*[TaskInfo](#taskinfo-1) | The containing task list details. |
 
 
 
@@ -235,7 +235,7 @@ Input:
 Outputs:
 | Field Name | Type                     | Description |
 | ---------- | ------------------------ | ----------- |
-| TaskInfo   | *[TaskInfo](#taskinfo-1) | The .       |
+| TaskInfo   | *[TaskInfo](#taskinfo-1) | The containing task details.       |
 
 
 
