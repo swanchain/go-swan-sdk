@@ -100,7 +100,7 @@ The `CreateTaskResp` struct represents the response returned after creating a ta
 
 | Field Name   | Type                        | Description                                                          |
 | ------------ | --------------------------- | -------------------------------------------------------------------- |
-| Task         | [Task](#task-1)                      | The `Task` struct containing details about the created task.         |
+| Task         | [Task](#task-1)             | The `Task` struct containing details about the created task.         |
 | ConfigOrder  | [ConfigOrder](#configorder) | The `ConfigOrder` struct containing the configuration order details. |
 | TxHash       | `string`                    | Transaction hash for the task creation.                              |
 | Id           | `string`                    | Unique identifier for the task.                                      |
@@ -164,10 +164,10 @@ Input:
 Output:
 ### ReNewTaskResp
 
-| Field Name  | Type          | Description                                                                |
-| ----------- | ------------- | -------------------------------------------------------------------------- |
-| ConfigOrder | `ConfigOrder` | The `ConfigOrder` struct containing details about the configuration order. |
-| Task        | `Task`        | The `Task` struct containing details about the task.                       |
+| Field Name  | Type                                  | Description                                                                |
+| ----------- | ------------------------------------- | -------------------------------------------------------------------------- |
+| ConfigOrder | [ConfigOrder](#configorder)(embedded) | The `ConfigOrder` struct containing details about the configuration order. |
+| Task        | [Task](#task-1)                       | The `Task` struct containing details about the task.                       |
 
 
 ## RenewPayment
@@ -206,9 +206,9 @@ Output:
 func (c *APIClient) GetRealUrl(taskUuid string) ([]string, error) 
 ```
 Input:
-| Field Name | Type     | Description                                                          |
-| ---------- | -------- | -------------------------------------------------------------------- |
-| taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
+| Field Name | Type     | Description                                          |
+| ---------- | -------- | ---------------------------------------------------- |
+| taskUuid   | `string` | The universally unique identifier (UUID) of the task |
 
 Output:
 | Field Name | Type       | Description                  |
@@ -227,9 +227,11 @@ Input:
 | Size       | `uint`   | The number of tasks per page.               |
 
 Output:
-| Field Name | Type       | Description                  |
-| ---------- | ---------- | ---------------------------- |
-| -          | `[]string` | The application access urls. |
+| Field Name | Type                       | Description                  |
+| ---------- | -------------------------- | ---------------------------- |
+| total      | int64                      | The total of data.           |
+| list       | []*[TaskInfo](#taskinfo-1) | The application access urls. |
+
 
 
 
@@ -238,11 +240,14 @@ Output:
 func (c *APIClient) TaskInfo(taskUUID string) (*TaskInfo, error) 
 ```
 Input:
-| Field Name | Type     | Description                                                          |
-| ---------- | -------- | -------------------------------------------------------------------- |
-| taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
+| Field Name | Type     | Description                                          |
+| ---------- | -------- | ---------------------------------------------------- |
+| taskUUID   | `string` | The universally unique identifier (UUID) of the task |
 
 Output:
+| Field Name | Type                     | Description |
+| ---------- | ------------------------ | ----------- |
+| TaskInfo   | *[TaskInfo](#taskinfo-1) | The .       |
 
 
 
@@ -415,12 +420,12 @@ The `Task` struct contains information about the task, including its lifecycle a
 
 ## TaskInfo
 
-| Field Name | Type                   | Description                                           |
-| ---------- | ---------------------- | ----------------------------------------------------- |
+| Field Name | Type                                       | Description                                           |
+| ---------- | ------------------------------------------ | ----------------------------------------------------- |
 | Providers  | []*[ComputingProvider](#computingprovider) | List of computing providers associated with the task. |
-| Orders     | []*[ConfigOrder](#configorder)       | List of configuration orders related to the task.     |
-| Jobs       | []*[Job](#job)               | List of jobs related to the task.                     |
-| Task       | [Task](#task)                 | The task itself.                                      |
+| Orders     | []*[ConfigOrder](#configorder)             | List of configuration orders related to the task.     |
+| Jobs       | []*[Job](#job)                             | List of jobs related to the task.                     |
+| Task       | [Task](#task)                              | The task itself.                                      |
 
 ## ComputingProvider
 
