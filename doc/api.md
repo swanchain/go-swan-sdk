@@ -104,7 +104,7 @@ Outputs:
 ```go
 func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration int64, instanceType string) (PaymentResult, error)
 ```
-Input:
+Inputs:
 
 | Field Name   | Type     | Description                                                          |
 | ------------ | -------- | -------------------------------------------------------------------- |
@@ -125,7 +125,7 @@ Outputs:
 ```go
 func (c *APIClient) EstimatePayment(instanceType string, duration int) (float64, error)
 ```
-Input:
+Inputs:
 | Field Name   | Type     | Description                                                     |
 | ------------ | -------- | --------------------------------------------------------------- |
 | duration     | `int64`  | The duration (in minutes or hours) for which the task will run. |
@@ -161,7 +161,7 @@ Outputs:
 ```go
 func (c *APIClient) RenewPayment(taskUuid string, duration int, privateKey string) (string, error)
 ```
-Input:
+Inputs:
 | Field Name | Type     | Description                                                          |
 | ---------- | -------- | -------------------------------------------------------------------- |
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
@@ -177,7 +177,7 @@ Outputs:
 ```go
 func (c *APIClient) TerminateTask(taskUuid string) (TerminateTaskResp, error)
 ```
-Input:
+Inputs:
 | Field Name | Type     | Description                                                          |
 | ---------- | -------- | -------------------------------------------------------------------- |
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
@@ -193,7 +193,7 @@ Outputs:
 ```go
 func (c *APIClient) GetRealUrl(taskUuid string) ([]string, error) 
 ```
-Input:
+Inputs:
 | Field Name | Type     | Description                                          |
 | ---------- | -------- | ---------------------------------------------------- |
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task |
