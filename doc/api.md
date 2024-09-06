@@ -27,8 +27,8 @@
   - [ActiveOrder](#activeorder)
   - [Config](#config)
   - [ConfigOrder](#configorder)
-  - [Task](#task)
-  - [TaskInfo](#taskinfo)
+  - [Task](#task-1)
+  - [TaskInfo](#taskinfo-1)
   - [ComputingProvider](#computingprovider)
   - [Job](#job)
 
@@ -100,7 +100,7 @@ The `CreateTaskResp` struct represents the response returned after creating a ta
 
 | Field Name   | Type                        | Description                                                          |
 | ------------ | --------------------------- | -------------------------------------------------------------------- |
-| Task         | `Task`                      | The `Task` struct containing details about the created task.         |
+| Task         | [Task](#task-1)                      | The `Task` struct containing details about the created task.         |
 | ConfigOrder  | [ConfigOrder](#configorder) | The `ConfigOrder` struct containing the configuration order details. |
 | TxHash       | `string`                    | Transaction hash for the task creation.                              |
 | Id           | `string`                    | Unique identifier for the task.                                      |
