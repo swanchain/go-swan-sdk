@@ -4,11 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/swanchain/go-swan-sdk/contract"
 	"log"
 	"math/big"
 	"net/http"
@@ -17,6 +12,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/swanchain/go-swan-sdk/contract"
 )
 
 type APIClient struct {
@@ -363,19 +364,19 @@ func (c *APIClient) RenewPayment(taskUuid string, duration int, privateKey strin
 	}
 }
 
-func (c *APIClient) TerminateTask(taskUuid string) (string, error) {
+func (c *APIClient) TerminateTask(taskUuid string) (TerminateTaskResp, error) {
 	var terminateTaskResp TerminateTaskResp
 
 	if strings.TrimSpace(taskUuid) == "" {
-		return "", fmt.Errorf("invalid taskUuid")
+		return terminateTaskResp, fmt.Errorf("invalid taskUuid")
 	}
 
 	var params = make(url.Values)
 	params.Set("task_uuid", taskUuid)
 	if err := c.httpClient.PostForm(apiTerminateTask, params, NewResult(&terminateTaskResp)); err != nil {
-		return "", err
+		return terminateTaskResp, err
 	}
-	return terminateTaskResp.Id, nil
+	return terminateTaskResp, nil
 }
 
 func (c *APIClient) GetRealUrl(taskUuid string) ([]string, error) {

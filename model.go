@@ -255,7 +255,6 @@ type ReNewTaskResp struct {
 }
 
 type TerminateTaskResp struct {
-	Id         string `json:"id"`
 	Retryable  bool   `json:"retryable"`
 	TaskStatus string `json:"task_status"`
 }

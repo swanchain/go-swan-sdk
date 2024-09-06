@@ -3,15 +3,10 @@
 - [APIs](#apis)
   - [NewClient](#newclient)
   - [Hardwares](#hardwares)
-    - [Hardware](#hardware)
   - [Create task](#create-task)
-    - [CreateTaskReq](#createtaskreq)
-    - [CreateTaskResp](#createtaskresp)
   - [PayAndDeployTask](#payanddeploytask)
-    - [PaymentResult](#paymentresult)
   - [EstimatePayment](#estimatepayment)
   - [ReNewTask](#renewtask)
-    - [ReNewTaskResp](#renewtaskresp)
   - [RenewPayment](#renewpayment)
   - [TerminateTask](#terminatetask)
   - [GetRealUrl](#getrealurl)
@@ -63,8 +58,6 @@ func (c *APIClient) Hardwares() ([]*Hardware, error)
 
 Outputs:
 
-### Hardware
-
 | Field Name       | Type                                      | Description                                                                                                                                            |
 | ---------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | HardwareBaseInfo | [HardwareBaseInfo](#hardwarebaseinfo)     | Contains the basic details of the hardware.                                                                                                            |
@@ -78,7 +71,6 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error)
 ```
 Inputs:
 
-### CreateTaskReq
 | Field Name      | Type       | Description                                                                             |
 | --------------- | ---------- | --------------------------------------------------------------------------------------- |
 | PrivateKey      | `string`   | The private key associated with the task. This field is optional and may be omitted.    |
@@ -95,8 +87,6 @@ Inputs:
 | PreferredCpList | `[]string` | A list of preferred control points (CPs) that should be used during the task execution. |
 
 Out:
-### CreateTaskResp
-The `CreateTaskResp` struct represents the response returned after creating a task.
 
 | Field Name   | Type                        | Description                                                          |
 | ------------ | --------------------------- | -------------------------------------------------------------------- |
@@ -124,8 +114,6 @@ Input:
 | instanceType | `string` | The type of instance to be used for the task.                        |
 
 Out:
-### PaymentResult
-The `PaymentResult` struct represents the response returned after creating a task.
 
 | Field Name  | Type                                  | Description                               |
 | ----------- | ------------------------------------- | ----------------------------------------- |
@@ -162,7 +150,6 @@ Input:
 | txHash     | `string` | The paid tx_hash.                                                    |
 
 Output:
-### ReNewTaskResp
 
 | Field Name  | Type                                  | Description                                                                |
 | ----------- | ------------------------------------- | -------------------------------------------------------------------------- |
@@ -188,7 +175,7 @@ Output:
 
 ## TerminateTask
 ```go
-func (c *APIClient) TerminateTask(taskUuid string) (string, error)
+func (c *APIClient) TerminateTask(taskUuid string) (TerminateTaskResp, error)
 ```
 Input:
 | Field Name | Type     | Description                                                          |
@@ -196,9 +183,10 @@ Input:
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
 
 Output:
-| Field Name | Type     | Description |
-| ---------- | -------- | ----------- |
-| -          | `string` | The result. |
+| Field Name | Type     | Description                                                   |
+| ---------- | -------- | ------------------------------------------------------------- |
+| Retryable  | `bool`   | Indicates whether the task termination is retryable.          |
+| TaskStatus | `string` | The current status of the task after the termination attempt. |
 
 
 ## GetRealUrl
