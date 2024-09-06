@@ -249,7 +249,7 @@ type PaymentResult struct {
 	ConfigOrder
 }
 
-type ReNewTaskResp struct {
+type RenewTaskResp struct {
 	ConfigOrder ConfigOrder `json:"config_order"`
 	Task        Task        `json:"task"`
 }

@@ -17,7 +17,7 @@ func TestAPIClient_CreateTaskWithAutoPay(t *testing.T) {
 		AutoPay:      true,
 		JobSourceUri: JobSourceUri,
 	}
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.CreateTask(&req)
 	if err != nil {
 		t.Errorf("CreateTaskWithAutoPay() error = %v", err)
@@ -32,7 +32,7 @@ func TestAPIClient_CreateTask(t *testing.T) {
 		JobSourceUri: JobSourceUri,
 	}
 
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.CreateTask(&req)
 	if err != nil {
 		t.Errorf("CreateTask() error = %v", err)
@@ -41,7 +41,7 @@ func TestAPIClient_CreateTask(t *testing.T) {
 }
 
 func TestAPIClient_PayAndDeployTask(t *testing.T) {
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 
 	// taskUuid:  returned by create task
 	taskUuid := "a9d2f2ca-8819-43f7-9347-7ccf0ea11822"
@@ -53,7 +53,7 @@ func TestAPIClient_PayAndDeployTask(t *testing.T) {
 }
 
 func TestAPIClient_TaskInfo(t *testing.T) {
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.TaskInfo("a9d2f2ca-8819-43f7-9347-7ccf0ea11822")
 	if err != nil {
 		t.Errorf("TaskInfo() error = %v", err)
@@ -67,7 +67,7 @@ func TestAPIClient_Tasks(t *testing.T) {
 		Page:   0,
 		Size:   10,
 	}
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	total, resp, err := apiClient.Tasks(req)
 	if err != nil {
 		t.Errorf("Tasks() error = %v", err)
@@ -76,7 +76,7 @@ func TestAPIClient_Tasks(t *testing.T) {
 }
 
 func TestAPIClient_Hardwares(t *testing.T) {
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.Hardwares()
 	if err != nil {
 		t.Errorf("Hardwares() error = %v", err)
@@ -85,7 +85,7 @@ func TestAPIClient_Hardwares(t *testing.T) {
 }
 
 func TestAPIClient_GetRealUrl(t *testing.T) {
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.GetRealUrl("01c0f29a-2304-45fa-bb03-976348e714e4")
 	if err != nil {
 		t.Errorf("CreateTask() error = %v", err)
@@ -94,7 +94,7 @@ func TestAPIClient_GetRealUrl(t *testing.T) {
 }
 
 func TestAPIClient_TerminateTask(t *testing.T) {
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.TerminateTask("01c0f29a-2304-45fa-bb03-976348e714e4")
 	if err != nil {
 		t.Errorf("TerminateTask() error = %v", err)
@@ -104,7 +104,7 @@ func TestAPIClient_TerminateTask(t *testing.T) {
 
 func Test_getContractInfo(t *testing.T) {
 
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.getContractInfo(false)
 	if err != nil {
 		t.Errorf("getContractInfo() error = %v", err)
@@ -113,7 +113,7 @@ func Test_getContractInfo(t *testing.T) {
 }
 
 func TestAPIClient_EstimatePayment(t *testing.T) {
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.EstimatePayment("P1ae.medium", 3600)
 	if err != nil {
 		t.Errorf("EstimatePayment() error = %v", err)
@@ -122,9 +122,9 @@ func TestAPIClient_EstimatePayment(t *testing.T) {
 	t.Logf("estimate Payment response: %v", resp)
 }
 
-func TestAPIClient_ReNewTask(t *testing.T) {
-	apiClient := NewAPIClient(ApiKey, true)
-	resp, err := apiClient.ReNewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", 3600, true, PrivateKey, "")
+func TestAPIClient_RenewTask(t *testing.T) {
+	apiClient, _ := NewAPIClient(ApiKey, true)
+	resp, err := apiClient.RenewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", 3600, true, PrivateKey, "")
 	if err != nil {
 		t.Errorf("ReNewTask() error = %v", err)
 	}
@@ -132,7 +132,7 @@ func TestAPIClient_ReNewTask(t *testing.T) {
 }
 
 func TestAPIClient_RenewPayment(t *testing.T) {
-	apiClient := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	txHash, err := apiClient.RenewPayment("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", 3600, PrivateKey)
 	if err != nil {
 		t.Errorf("RenewPayment() error = %v", err)

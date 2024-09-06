@@ -4,11 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/swanchain/go-swan-sdk/contract"
 	"log"
 	"math/big"
 	"net/http"
@@ -17,6 +12,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/swanchain/go-swan-sdk/contract"
 )
 
 type APIClient struct {
@@ -26,7 +27,7 @@ type APIClient struct {
 	hardwareList   []*Hardware
 }
 
-func NewAPIClient(apiKey string, isTestnet ...bool) *APIClient {
+func NewAPIClient(apiKey string, isTestnet ...bool) (*APIClient, error) {
 	host := gatewayMainnet
 	if len(isTestnet) > 0 && isTestnet[0] {
 		host = gatewayTestnet
@@ -42,17 +43,17 @@ func NewAPIClient(apiKey string, isTestnet ...bool) *APIClient {
 
 	contractDetail, err := apiClient.getContractInfo(false)
 	if err != nil {
-		log.Fatalf("failed to get contract detail, error: %v", err)
+		return nil, fmt.Errorf("failed to get contract detail, error: %v", err)
 	}
 
 	hardwareList, err := apiClient.Hardwares()
 	if err != nil {
-		log.Fatalf("failed to get hardware, error: %v", err)
+		return nil, fmt.Errorf("failed to get hardware, error: %v", err)
 	}
 
 	apiClient.hardwareList = hardwareList
 	apiClient.contractDetail = contractDetail
-	return &apiClient
+	return &apiClient, nil
 }
 
 func (c *APIClient) login() {
@@ -102,16 +103,16 @@ func (c *APIClient) Tasks(req *TaskQueryReq) (total int64, list []*TaskInfo, err
 /*
 Create a task via the orchestrator.
 */
-func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
+func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 	var createTaskResp CreateTaskResp
 
 	if req.AutoPay && req.PrivateKey == "" {
-		return createTaskResp, fmt.Errorf("please provide private_key if using auto_pay")
+		return nil, fmt.Errorf("please provide private_key if using auto_pay")
 	}
 
 	publicKeyAddress, err := privateKeyToPublicKey(req.PrivateKey)
 	if err != nil {
-		return createTaskResp, err
+		return nil, err
 	}
 	var walletAddress = publicKeyAddress.String()
 
@@ -124,7 +125,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	}
 
 	if req.Duration < 3600 {
-		return CreateTaskResp{}, fmt.Errorf("duration must be no less than 3600 seconds")
+		return nil, fmt.Errorf("duration must be no less than 3600 seconds")
 	}
 
 	if strings.TrimSpace(req.InstanceType) == "" {
@@ -132,7 +133,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	}
 
 	if _, err := c.getHardwareByInstanceType(req.InstanceType); err != nil {
-		return createTaskResp, err
+		return nil, err
 	}
 	log.Printf("Using %s machine, region=%s  duration=%d (seconds) \n", req.InstanceType, req.Region, req.Duration)
 
@@ -140,14 +141,14 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 		if req.RepoUri != "" {
 			sourceUri, err := c.getSourceUri(req.RepoUri, walletAddress, req.InstanceType, req.RepoBranch, req.RepoOwner, req.RepoName)
 			if err != nil {
-				return createTaskResp, fmt.Errorf("please provide JobSourceUri, or RepoUri, error: %v", err)
+				return nil, fmt.Errorf("please provide JobSourceUri, or RepoUri, error: %v", err)
 			}
 			req.JobSourceUri = sourceUri
 		}
 	}
 
 	if req.JobSourceUri == "" {
-		return createTaskResp, fmt.Errorf("cannot get JobSourceUri. make sure `RepoUri` or `JobSourceUri` is correct")
+		return nil, fmt.Errorf("cannot get JobSourceUri. make sure `RepoUri` or `JobSourceUri` is correct")
 	}
 
 	var preferredCp string
@@ -156,7 +157,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	}
 
 	if !c.verifyHardwareRegion(req.InstanceType, req.Region) {
-		return createTaskResp, fmt.Errorf("no %s machine in %s", req.InstanceType, req.Region)
+		return nil, fmt.Errorf("no %s machine in %s", req.InstanceType, req.Region)
 	}
 	var params = make(url.Values)
 	params.Set("duration", strconv.Itoa(req.Duration))
@@ -171,7 +172,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 
 	c.login()
 	if err := c.httpClient.PostForm(apiTask, params, NewResult(&createTaskResp)); err != nil {
-		return createTaskResp, fmt.Errorf("failed to create task, error: %v", err)
+		return nil, fmt.Errorf("failed to create task, error: %v", err)
 	}
 
 	taskUuid := createTaskResp.Task.UUID
@@ -181,7 +182,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 
 	estimatePrice, err := c.EstimatePayment(req.InstanceType, req.Duration)
 	if err != nil {
-		return createTaskResp, err
+		return nil, err
 	}
 	createTaskResp.Price = estimatePrice
 
@@ -189,38 +190,38 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	if req.AutoPay {
 		payment, err := c.PayAndDeployTask(taskUuid, req.PrivateKey, req.Duration, req.InstanceType)
 		if err != nil {
-			return createTaskResp, err
+			return nil, err
 		}
 		createTaskResp.ConfigOrder = payment.ConfigOrder
 		createTaskResp.TxHash = payment.TxHash
 		log.Printf("Task created successfully, taskUuid=%s, txHash=%s, instanceType=%s", taskUuid, txHash, req.InstanceType)
 	}
-	return createTaskResp, nil
+	return &createTaskResp, nil
 }
 
-func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration int, instanceType string) (PaymentResult, error) {
+func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration int, instanceType string) (*PaymentResult, error) {
 	var paymentResult PaymentResult
 
 	if strings.TrimSpace(instanceType) == "" {
-		return paymentResult, fmt.Errorf("invalid instanceType")
+		return nil, fmt.Errorf("invalid instanceType")
 	}
 	if privateKey == "" {
-		return paymentResult, fmt.Errorf("no privateKey provided")
+		return nil, fmt.Errorf("no privateKey provided")
 	}
 
 	submitPaymentTx, err := c.submitPayment(taskUuid, privateKey, duration, instanceType)
 	if err != nil {
-		return paymentResult, err
+		return nil, err
 	}
 	time.Sleep(3 * time.Second)
 	validatePaymentResult, err := c.validatePayment(submitPaymentTx, taskUuid)
 	if err != nil {
-		return paymentResult, err
+		return nil, err
 	}
 	paymentResult.ConfigOrder = validatePaymentResult.ConfigOrder
 	log.Printf("Payment submitted and validated successfully, taskUuid=%s, tx_hash=%s", taskUuid, submitPaymentTx)
 
-	return paymentResult, nil
+	return &paymentResult, nil
 
 }
 
@@ -237,7 +238,7 @@ func (c *APIClient) EstimatePayment(instanceType string, duration int) (float64,
 	return priceInt * float64(duration/3600), nil
 }
 
-func (c *APIClient) ReNewTask(taskUuid string, duration int, autoPay bool, privateKey string, txHash string) (*ReNewTaskResp, error) {
+func (c *APIClient) RenewTask(taskUuid string, duration int, autoPay bool, privateKey string, txHash string) (*RenewTaskResp, error) {
 	if strings.TrimSpace(taskUuid) == "" {
 		return nil, fmt.Errorf("invalid taskUuid")
 	}
@@ -261,7 +262,7 @@ func (c *APIClient) ReNewTask(taskUuid string, duration int, autoPay bool, priva
 		params.Set("duration", strconv.Itoa(duration))
 		params.Set("tx_hash", txHash)
 
-		var reNewTaskResp ReNewTaskResp
+		var reNewTaskResp RenewTaskResp
 		if err := c.httpClient.PostForm(apiReNewTask, params, NewResult(&reNewTaskResp)); err != nil {
 			return nil, err
 		}
@@ -550,11 +551,11 @@ func (c *APIClient) getContractInfo(validate bool) (ContractDetail, error) {
 	return contractResult.ContractInfo.ContractDetail, nil
 }
 
-func (c *APIClient) getHardwareByInstanceType(instanceType string) (HardwareBaseInfo, error) {
+func (c *APIClient) getHardwareByInstanceType(instanceType string) (*HardwareBaseInfo, error) {
 	var baseInfo HardwareBaseInfo
 
 	if strings.TrimSpace(instanceType) == "" {
-		return baseInfo, fmt.Errorf("invalid instanceType")
+		return nil, fmt.Errorf("invalid instanceType")
 	}
 
 	for _, hardware := range c.hardwareList {
@@ -565,9 +566,9 @@ func (c *APIClient) getHardwareByInstanceType(instanceType string) (HardwareBase
 	}
 
 	if baseInfo.Description != "" {
-		return baseInfo, nil
+		return nil, nil
 	}
-	return baseInfo, fmt.Errorf("invalid instanceType: %s", instanceType)
+	return &baseInfo, fmt.Errorf("invalid instanceType: %s", instanceType)
 }
 
 type Result struct {
