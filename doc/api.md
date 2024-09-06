@@ -86,7 +86,7 @@ Inputs:
 | StartIn         | `int`      | The delay (in seconds) before the task starts.                                          |
 | PreferredCpList | `[]string` | A list of preferred control points (CPs) that should be used during the task execution. |
 
-Out:
+Outputs:
 
 | Field Name   | Type                        | Description                                                          |
 | ------------ | --------------------------- | -------------------------------------------------------------------- |
@@ -113,7 +113,7 @@ Input:
 | duration     | `int64`  | The duration (in minutes or hours) for which the task will run.      |
 | instanceType | `string` | The type of instance to be used for the task.                        |
 
-Out:
+Outputs:
 
 | Field Name  | Type                                  | Description                               |
 | ----------- | ------------------------------------- | ----------------------------------------- |
@@ -131,7 +131,7 @@ Input:
 | duration     | `int64`  | The duration (in minutes or hours) for which the task will run. |
 | instanceType | `string` | The type of instance to be used for the task.                   |
 
-Out:
+Outputs:
 | Field Name | Type      | Description                 |
 | ---------- | --------- | --------------------------- |
 | -          | `float64` | The estimate payment price. |
@@ -140,7 +140,7 @@ Out:
 ```go
 func (c *APIClient) ReNewTask(taskUuid string, duration int, autoPay bool, privateKey string, txHash string) (*ReNewTaskResp, error) 
 ```
-Input:
+In:
 | Field Name | Type     | Description                                                          |
 | ---------- | -------- | -------------------------------------------------------------------- |
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
@@ -149,7 +149,7 @@ Input:
 | privateKey | `string` | The private key used for payment authorization.                      |
 | txHash     | `string` | The paid tx_hash.                                                    |
 
-Output:
+Outputs:
 
 | Field Name  | Type                                  | Description                                                                |
 | ----------- | ------------------------------------- | -------------------------------------------------------------------------- |
@@ -168,7 +168,7 @@ Input:
 | duration   | `int64`  | The duration (in minutes or hours) for which the task will run.      |
 | privateKey | `string` | The private key used for payment authorization.                      |
 
-Output:
+Outputs:
 | Field Name | Type     | Description       |
 | ---------- | -------- | ----------------- |
 | -          | `string` | The paid tx_hash. |
@@ -182,7 +182,7 @@ Input:
 | ---------- | -------- | -------------------------------------------------------------------- |
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
 
-Output:
+Outputs:
 | Field Name | Type     | Description                                                   |
 | ---------- | -------- | ------------------------------------------------------------- |
 | Retryable  | `bool`   | Indicates whether the task termination is retryable.          |
@@ -198,7 +198,7 @@ Input:
 | ---------- | -------- | ---------------------------------------------------- |
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task |
 
-Output:
+Outputs:
 | Field Name | Type       | Description                  |
 | ---------- | ---------- | ---------------------------- |
 | -          | `[]string` | The application access urls. |
@@ -214,7 +214,7 @@ Input:
 | Page       | `uint`   | The page number for pagination.             |
 | Size       | `uint`   | The number of tasks per page.               |
 
-Output:
+Outputs:
 | Field Name | Type                       | Description                  |
 | ---------- | -------------------------- | ---------------------------- |
 | total      | int64                      | The total of data.           |
@@ -232,7 +232,7 @@ Input:
 | ---------- | -------- | ---------------------------------------------------- |
 | taskUUID   | `string` | The universally unique identifier (UUID) of the task |
 
-Output:
+Outputs:
 | Field Name | Type                     | Description |
 | ---------- | ------------------------ | ----------- |
 | TaskInfo   | *[TaskInfo](#taskinfo-1) | The .       |
