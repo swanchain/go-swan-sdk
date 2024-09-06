@@ -179,6 +179,7 @@ type ConfigOrder struct {
 	Status          string `json:"status"`
 	TaskUUID        string `json:"task_uuid"`
 	TxHash          string `json:"tx_hash"`
+	ApproveHash     string `json:"approve_hash"`
 	UpdatedAt       int64  `json:"updated_at"`
 	UUID            string `json:"uuid"`
 }

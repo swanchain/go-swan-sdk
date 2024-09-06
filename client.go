@@ -176,7 +176,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	createTaskResp.InstanceType = req.InstanceType
 	createTaskResp.Id = taskUuid
 
-	estimatePrice, err := c.EstimatePayment(req.InstanceType, int(req.Duration.Seconds()))
+	estimatePrice, err := c.EstimatePayment(req.InstanceType, req.Duration.Seconds())
 	if err != nil {
 		return createTaskResp, err
 	}
@@ -184,7 +184,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 
 	var txHash string
 	if req.PrivateKey != "" {
-		payment, err := c.PayAndDeployTask(taskUuid, req.PrivateKey, int(req.Duration.Seconds()), req.InstanceType)
+		payment, err := c.PayAndDeployTask(taskUuid, req.PrivateKey, req.Duration, req.InstanceType)
 		if err != nil {
 			return createTaskResp, err
 		}
@@ -195,7 +195,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	return createTaskResp, nil
 }
 
-func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration int, instanceType string) (PaymentResult, error) {
+func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration time.Duration, instanceType string) (PaymentResult, error) {
 	var paymentResult PaymentResult
 
 	if strings.TrimSpace(instanceType) == "" {
@@ -205,7 +205,7 @@ func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration int, 
 		return paymentResult, fmt.Errorf("no privateKey provided")
 	}
 
-	submitPaymentTx, err := c.submitPayment(taskUuid, privateKey, duration, instanceType)
+	approveTxHash, submitPaymentTx, err := c.submitPayment(taskUuid, privateKey, duration, instanceType)
 	if err != nil {
 		return paymentResult, err
 	}
@@ -215,13 +215,14 @@ func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration int, 
 		return paymentResult, err
 	}
 	paymentResult.ConfigOrder = validatePaymentResult.ConfigOrder
-	log.Printf("Payment submitted and validated successfully, taskUuid=%s, tx_hash=%s", taskUuid, submitPaymentTx)
+	paymentResult.ApproveHash = approveTxHash
+	log.Printf("Payment submitted and validated successfully, taskUuid=%s, approve_hash=%s, tx_hash=%s", taskUuid, approveTxHash, submitPaymentTx)
 
 	return paymentResult, nil
 
 }
 
-func (c *APIClient) EstimatePayment(instanceType string, duration int) (float64, error) {
+func (c *APIClient) EstimatePayment(instanceType string, duration float64) (float64, error) {
 	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
 	if err != nil {
 		return 0, err
@@ -231,10 +232,10 @@ func (c *APIClient) EstimatePayment(instanceType string, duration int) (float64,
 	if err != nil {
 		return 0, err
 	}
-	return priceInt * float64(duration/3600), nil
+	return priceInt * (duration / 3600), nil
 }
 
-func (c *APIClient) RenewTask(taskUuid string, duration int, privateKey string, txHash string) (*RenewTaskResp, error) {
+func (c *APIClient) RenewTask(taskUuid string, duration time.Duration, privateKey string, txHash string) (*RenewTaskResp, error) {
 	if strings.TrimSpace(taskUuid) == "" {
 		return nil, fmt.Errorf("invalid taskUuid")
 	}
@@ -255,7 +256,7 @@ func (c *APIClient) RenewTask(taskUuid string, duration int, privateKey string, 
 	if txHash != "" && taskUuid != "" {
 		var params = make(url.Values)
 		params.Set("task_uuid", taskUuid)
-		params.Set("duration", strconv.Itoa(duration))
+		params.Set("duration", strconv.FormatFloat(duration.Seconds(), 'f', 2, 64))
 		params.Set("tx_hash", txHash)
 
 		var renewTaskResp RenewTaskResp
@@ -268,7 +269,7 @@ func (c *APIClient) RenewTask(taskUuid string, duration int, privateKey string, 
 	}
 }
 
-func (c *APIClient) RenewPayment(taskUuid string, duration int, privateKey string) (string, error) {
+func (c *APIClient) RenewPayment(taskUuid string, duration time.Duration, privateKey string) (string, error) {
 	if strings.TrimSpace(taskUuid) == "" {
 		return "", fmt.Errorf("invalid taskUuid")
 	}
@@ -287,7 +288,7 @@ func (c *APIClient) RenewPayment(taskUuid string, duration int, privateKey strin
 	}
 	var hardwareId = hardwareBaseInfo.ID
 
-	estimatePrice, err := c.EstimatePayment(instanceType, duration)
+	estimatePrice, err := c.EstimatePayment(instanceType, duration.Seconds())
 	if err != nil {
 		return "", err
 	}
@@ -432,52 +433,52 @@ func (c *APIClient) verifyHardwareRegion(instanceType, region string) bool {
 	return false
 }
 
-func (c *APIClient) submitPayment(taskUuid, privateKey string, duration int, instanceType string) (string, error) {
+func (c *APIClient) submitPayment(taskUuid, privateKey string, duration time.Duration, instanceType string) (string, string, error) {
 	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if privateKey == "" {
-		return "", fmt.Errorf("no privateKey provided")
+		return "", "", fmt.Errorf("no privateKey provided")
 	}
 	var hardwareId = hardwareBaseInfo.ID
-	estimatePrice, err := c.EstimatePayment(instanceType, duration)
+	estimatePrice, err := c.EstimatePayment(instanceType, duration.Seconds())
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	priceBigInt, ok := new(big.Int).SetString(fmt.Sprintf("%.f", estimatePrice), 10)
 	if !ok {
-		return "", fmt.Errorf("failed to convert float64 to big.Int")
+		return "", "", fmt.Errorf("failed to convert float64 to big.Int")
 	}
 
 	client, err := ethclient.Dial(c.contractDetail.RpcUrl)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer client.Close()
 
 	tokenContract, err := contract.NewToken(common.HexToAddress(c.contractDetail.SwanTokenContractAddress), client)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	paymentContract, err := contract.NewPaymentContract(common.HexToAddress(c.contractDetail.ClientContractAddress), client)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	approveTransactOpts, err := CreateTransactOpts(client, privateKey)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	hardwareIdBigInt := new(big.Int).SetInt64(hardwareId)
 	durationBigInt := new(big.Int).SetInt64(int64(duration))
 	approve, err := tokenContract.Approve(approveTransactOpts, common.HexToAddress(c.contractDetail.ClientContractAddress), priceBigInt)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	tokenApproveHash := approve.Hash().String()
@@ -486,14 +487,14 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration int, ins
 	for {
 		select {
 		case <-timeout:
-			return "", fmt.Errorf("timeout waiting for transaction confirmation, tx: %s", tokenApproveHash)
+			return "", "", fmt.Errorf("timeout waiting for transaction confirmation, tx: %s", tokenApproveHash)
 		case <-ticker:
 			receipt, err := client.TransactionReceipt(context.Background(), common.HexToHash(tokenApproveHash))
 			if err != nil {
 				if errors.Is(err, ethereum.NotFound) {
 					continue
 				}
-				return "", fmt.Errorf("check swan token Approve tx, error: %+v", err)
+				return "", "", fmt.Errorf("check swan token Approve tx, error: %+v", err)
 			}
 
 			if receipt != nil && receipt.Status == types.ReceiptStatusSuccessful {
@@ -501,16 +502,16 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration int, ins
 
 				paymentTransactOpts, err := CreateTransactOpts(client, privateKey)
 				if err != nil {
-					return "", err
+					return "", "", err
 				}
 				transaction, err := paymentContract.SubmitPayment(paymentTransactOpts, taskUuid, hardwareIdBigInt, durationBigInt)
 				if err != nil {
-					return "", fmt.Errorf("failed to submit payment, error: %v", err)
+					return "", "", fmt.Errorf("failed to submit payment, error: %v", err)
 				}
 				log.Printf("Payment submitted, task_uuid=%s, duration=%d, hardwareId=%d", taskUuid, duration, hardwareId)
-				return transaction.Hash().String(), nil
+				return tokenApproveHash, transaction.Hash().String(), nil
 			} else if receipt != nil && receipt.Status == 0 {
-				return "", fmt.Errorf("failed to check swan token approve transaction, tx: %s", tokenApproveHash)
+				return "", "", fmt.Errorf("failed to check swan token approve transaction, tx: %s", tokenApproveHash)
 			}
 		}
 	}

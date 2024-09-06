@@ -3,6 +3,7 @@ package swan
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 //# wallet_address = "0x3E364F3Ea3599329Cd9b6444Ac7947f0D73bAe75"
@@ -22,7 +23,6 @@ const (
 func TestAPIClient_CreateTaskWithAutoPay(t *testing.T) {
 	var req = CreateTaskReq{
 		PrivateKey:   PrivateKey,
-		AutoPay:      true,
 		JobSourceUri: JobSourceUri,
 	}
 	apiClient := NewAPIClient(ApiKey, true)
@@ -35,8 +35,6 @@ func TestAPIClient_CreateTaskWithAutoPay(t *testing.T) {
 
 func TestAPIClient_CreateTask(t *testing.T) {
 	var req = CreateTaskReq{
-		PrivateKey:   PrivateKey,
-		AutoPay:      false,
 		JobSourceUri: JobSourceUri,
 	}
 
@@ -53,7 +51,7 @@ func TestAPIClient_PayAndDeployTask(t *testing.T) {
 
 	// taskUuid:  returned by create task
 	taskUuid := "a9d2f2ca-8819-43f7-9347-7ccf0ea11822"
-	payAndDeployTaskResp, err := apiClient.PayAndDeployTask(taskUuid, PrivateKey, 3600, "C1ae.small")
+	payAndDeployTaskResp, err := apiClient.PayAndDeployTask(taskUuid, PrivateKey, time.Duration(3600), "C1ae.small")
 	if err != nil {
 		t.Errorf("PayAndDeployTask() error = %v", err)
 	}
@@ -135,7 +133,7 @@ func TestAPIClient_EstimatePayment(t *testing.T) {
 
 func TestAPIClient_ReNewTask(t *testing.T) {
 	apiClient := NewAPIClient(ApiKey, true)
-	resp, err := apiClient.ReNewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", 3600, true, PrivateKey, "")
+	resp, err := apiClient.RenewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Duration(3600), PrivateKey, "")
 	if err != nil {
 		t.Errorf("ReNewTask() error = %v", err)
 	}
@@ -144,7 +142,7 @@ func TestAPIClient_ReNewTask(t *testing.T) {
 
 func TestAPIClient_RenewPayment(t *testing.T) {
 	apiClient := NewAPIClient(ApiKey, true)
-	txHash, err := apiClient.RenewPayment("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", 3600, PrivateKey)
+	txHash, err := apiClient.RenewPayment("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Duration(3600), PrivateKey)
 	if err != nil {
 		t.Errorf("RenewPayment() error = %v", err)
 	}

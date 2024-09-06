@@ -6,7 +6,7 @@
   - [Create task](#create-task)
   - [PayAndDeployTask](#payanddeploytask)
   - [EstimatePayment](#estimatepayment)
-  - [ReNewTask](#renewtask)
+  - [RenewTask](#renewtask)
   - [RenewPayment](#renewpayment)
   - [TerminateTask](#terminatetask)
   - [GetRealUrl](#getrealurl)
@@ -71,20 +71,18 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error)
 ```
 Inputs:
 
-| Field Name      | Type       | Description                                                                             |
-| --------------- | ---------- | --------------------------------------------------------------------------------------- |
-| PrivateKey      | `string`   | The private key associated with the task. This field is optional and may be omitted.    |
-| InstanceType    | `string`   | The type of instance to be used for the task.                                           |
-| Region          | `string`   | The region where the task will be executed.                                             |
-| Duration        | `int`      | The duration (in minutes or hours) for which the task will run.                         |
-| AutoPay         | `bool`     | Indicates whether the task should be automatically paid for.                            |
-| JobSourceUri    | `string`   | The URI where the job source is located.                                                |
-| RepoUri         | `string`   | The URI of the repository containing the code to be used.                               |
-| RepoBranch      | `string`   | The branch of the repository to be checked out.                                         |
-| RepoOwner       | `string`   | The owner of the repository.                                                            |
-| RepoName        | `string`   | The name of the repository.                                                             |
-| StartIn         | `int`      | The delay (in seconds) before the task starts.                                          |
-| PreferredCpList | `[]string` | A list of preferred control points (CPs) that should be used during the task execution. |
+| Field Name      | Type       | Description                                                                          |
+| --------------- | ---------- |--------------------------------------------------------------------------------------|
+| PrivateKey      | `string`   | The private key associated with the task. This field is optional and may be omitted. |
+| InstanceType    | `string`   | The type of instance to be used for the task.                                        |
+| Region          | `string`   | The region where the task will be executed.                                          |
+| Duration        | `int`      | The duration (in minutes or hours) for which the task will run.                      |
+| RepoUri         | `string`   | The URI of the repository containing the code to be used.                            |
+| RepoBranch      | `string`   | The branch of the repository to be checked out.                                      |
+| RepoOwner       | `string`   | The owner of the repository.                                                         |
+| RepoName        | `string`   | The name of the repository.                                                          |
+| StartIn         | `int`      | The delay (in seconds) before the task starts.                                       |
+| PreferredCpList | `[]string` | A list of preferred CPs that should be used during the task execution.               |
 
 Outputs:
 
@@ -136,16 +134,15 @@ Outputs:
 | ---------- | --------- | --------------------------- |
 | -          | `float64` | The estimate payment price. |
 
-## ReNewTask
+## RenewTask
 ```go
-func (c *APIClient) ReNewTask(taskUuid string, duration int, autoPay bool, privateKey string, txHash string) (*ReNewTaskResp, error) 
+func (c *APIClient) RenewTask(taskUuid string, duration int, privateKey string, txHash string) (*RenewTaskResp, error) 
 ```
 In:
 | Field Name | Type     | Description                                                          |
 | ---------- | -------- | -------------------------------------------------------------------- |
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
 | duration   | `int64`  | The duration (in minutes or hours) for which the task will run.      |
-| AutoPay    | `bool`   | Indicates whether the task should be automatically paid for.         |
 | privateKey | `string` | The private key used for payment authorization.                      |
 | txHash     | `string` | The paid tx_hash.                                                    |
 
