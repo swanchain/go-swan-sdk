@@ -106,10 +106,6 @@ Create a task via the orchestrator.
 func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	var createTaskResp CreateTaskResp
 
-	if req.AutoPay && req.PrivateKey == "" {
-		return createTaskResp, fmt.Errorf("please provide private_key if using auto_pay")
-	}
-
 	publicKeyAddress, err := privateKeyToPublicKey(req.PrivateKey)
 	if err != nil {
 		return createTaskResp, err
@@ -124,7 +120,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 		req.StartIn = 300
 	}
 
-	if req.Duration < 3600 {
+	if req.Duration.Seconds() < 3600 {
 		return CreateTaskResp{}, fmt.Errorf("duration must be no less than 3600 seconds")
 	}
 
@@ -160,7 +156,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 		return createTaskResp, fmt.Errorf("no %s machine in %s", req.InstanceType, req.Region)
 	}
 	var params = make(url.Values)
-	params.Set("duration", strconv.Itoa(req.Duration))
+	params.Set("duration", strconv.Itoa(int(req.Duration.Seconds())))
 	params.Set("cfg_name", req.InstanceType)
 	params.Set("region", req.Region)
 	params.Set("start_in", strconv.Itoa(req.StartIn))
@@ -180,15 +176,15 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	createTaskResp.InstanceType = req.InstanceType
 	createTaskResp.Id = taskUuid
 
-	estimatePrice, err := c.EstimatePayment(req.InstanceType, req.Duration)
+	estimatePrice, err := c.EstimatePayment(req.InstanceType, int(req.Duration.Seconds()))
 	if err != nil {
 		return createTaskResp, err
 	}
 	createTaskResp.Price = estimatePrice
 
 	var txHash string
-	if req.AutoPay {
-		payment, err := c.PayAndDeployTask(taskUuid, req.PrivateKey, req.Duration, req.InstanceType)
+	if req.PrivateKey != "" {
+		payment, err := c.PayAndDeployTask(taskUuid, req.PrivateKey, int(req.Duration.Seconds()), req.InstanceType)
 		if err != nil {
 			return createTaskResp, err
 		}
@@ -238,13 +234,13 @@ func (c *APIClient) EstimatePayment(instanceType string, duration int) (float64,
 	return priceInt * float64(duration/3600), nil
 }
 
-func (c *APIClient) ReNewTask(taskUuid string, duration int, autoPay bool, privateKey string, txHash string) (*ReNewTaskResp, error) {
+func (c *APIClient) RenewTask(taskUuid string, duration int, privateKey string, txHash string) (*RenewTaskResp, error) {
 	if strings.TrimSpace(taskUuid) == "" {
 		return nil, fmt.Errorf("invalid taskUuid")
 	}
 
-	if !autoPay && privateKey == "" && txHash == "" {
-		return nil, fmt.Errorf("auto_pay off or tx_hash not provided, please provide a txHash or set autoPay to True and provide privateKey")
+	if privateKey == "" && txHash == "" {
+		return nil, fmt.Errorf("provide a txHash or privateKey")
 	}
 	if txHash == "" {
 		reNewPaymentTxHash, err := c.RenewPayment(taskUuid, duration, privateKey)
@@ -262,11 +258,11 @@ func (c *APIClient) ReNewTask(taskUuid string, duration int, autoPay bool, priva
 		params.Set("duration", strconv.Itoa(duration))
 		params.Set("tx_hash", txHash)
 
-		var reNewTaskResp ReNewTaskResp
-		if err := c.httpClient.PostForm(apiReNewTask, params, NewResult(&reNewTaskResp)); err != nil {
+		var renewTaskResp RenewTaskResp
+		if err := c.httpClient.PostForm(apiReNewTask, params, NewResult(&renewTaskResp)); err != nil {
 			return nil, err
 		}
-		return &reNewTaskResp, nil
+		return &renewTaskResp, nil
 	} else {
 		return nil, fmt.Errorf("txHash or taskUuid invalid")
 	}

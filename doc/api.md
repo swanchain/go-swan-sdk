@@ -165,7 +165,7 @@ Inputs:
 | Field Name | Type     | Description                                                          |
 | ---------- | -------- | -------------------------------------------------------------------- |
 | taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
-| duration   | `int64`  | The duration (in minutes or hours) for which the task will run.      |
+| duration   | `int64`  | The duration (seconds) for which the task will run.      |
 | privateKey | `string` | The private key used for payment authorization.                      |
 
 Outputs:
@@ -297,7 +297,7 @@ The `TaskDetail` struct contains detailed information about the task, including 
 | BidderLimit       | `int64`                        | Limit on the number of bidders.                                        |
 | CreatedAt         | `int64`                        | Timestamp when the task detail was created.                            |
 | DCCSelectedCpList | `any`                          | List of selected control points.                                       |
-| Duration          | `int64`                        | Duration (in minutes or hours) for which the task will run.            |
+| Duration          | `int64`                        | Duration (seconds) for which the task will run.            |
 | EndAt             | `int64`                        | Timestamp when the task ends.                                          |
 | Hardware          | `string`                       | Hardware configuration for the task.                                   |
 | JobResultURI      | `string`                       | URI where the job results can be accessed.                             |
