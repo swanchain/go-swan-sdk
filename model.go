@@ -207,6 +207,7 @@ PreferredCpList:  Optional. A list of preferred cp account address(es).
 */
 type CreateTaskReq struct {
 	PrivateKey      string        `json:"private_key,omitempty"`
+	WalletAddress   string        `json:"wallet_address"`
 	InstanceType    string        `json:"instance_type"`
 	Region          string        `json:"region"`
 	Duration        time.Duration `json:"duration"`

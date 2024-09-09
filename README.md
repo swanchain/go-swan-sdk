@@ -82,11 +82,10 @@ create, pay and deploy a task
 
 ```go
 createTaskResp, err := client.CreateTask(&CreateTaskReq{
-    PrivateKey: "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>",
-    AutoPay:    true, 
-    RepoUri:    "<Your_RESOURCE_URL>",
-    Duration:     3600, 
-    InstanceType: "C1ae.small", // hardware_type   
+    PrivateKey:   "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>",
+    RepoUri:      "<Your_RESOURCE_URL>",
+    Duration:     time.Duration(3600),
+    InstanceType: "C1ae.small", // hardware_type
 })
 
 taskUUID := createTaskResp.Task.UUID
@@ -115,7 +114,7 @@ It shows that this task has three applications. Open the URL in the web browser 
 `RenewTask` extends the duration of the task before completed
 
 ```go
-resp, err := apiClient.RenewTask("<TASK_UUID>", <Duration>, true,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
+resp, err := apiClient.RenewTask("<TASK_UUID>", <Duration>,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
 ```
 
 #### [Terminate Task]()

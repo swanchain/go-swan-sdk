@@ -1,20 +1,20 @@
 package swan
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
 
 const (
-	ApiKey       = "<API_KEY>"
-	Wallet       = "<WALLET_ADDRESS>"
-	PrivateKey   = "<WALLET_ADDRESS_PRIVATE_KEY>"
-	JobSourceUri = "https://test-api.lagrangedao.org/spaces/143a526d-0cfc-41d6-b95c-53a4018829c8"
+	ApiKey        = "<API_KEY>"
+	WalletAddress = "<WALLET_ADDRESS>"
+	PrivateKey    = "<WALLET_ADDRESS_PRIVATE_KEY>"
+	JobSourceUri  = "https://test-api.lagrangedao.org/spaces/143a526d-0cfc-41d6-b95c-53a4018829c8"
 )
 
 func TestAPIClient_CreateTaskWithAutoPay(t *testing.T) {
 	var req = CreateTaskReq{
+		Duration:     time.Duration(3600),
 		PrivateKey:   PrivateKey,
 		JobSourceUri: JobSourceUri,
 	}
@@ -28,7 +28,8 @@ func TestAPIClient_CreateTaskWithAutoPay(t *testing.T) {
 
 func TestAPIClient_CreateTask(t *testing.T) {
 	var req = CreateTaskReq{
-		JobSourceUri: JobSourceUri,
+		JobSourceUri:  JobSourceUri,
+		WalletAddress: WalletAddress,
 	}
 
 	apiClient, _ := NewAPIClient(ApiKey, true)
@@ -62,7 +63,7 @@ func TestAPIClient_TaskInfo(t *testing.T) {
 
 func TestAPIClient_Tasks(t *testing.T) {
 	var req = &TaskQueryReq{
-		Wallet: Wallet,
+		Wallet: WalletAddress,
 		Page:   0,
 		Size:   10,
 	}
@@ -122,7 +123,7 @@ func TestAPIClient_EstimatePayment(t *testing.T) {
 }
 
 func TestAPIClient_ReNewTask(t *testing.T) {
-	apiClient,_ := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.RenewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Duration(3600), PrivateKey, "")
 	if err != nil {
 		t.Errorf("ReNewTask() error = %v", err)
@@ -131,7 +132,7 @@ func TestAPIClient_ReNewTask(t *testing.T) {
 }
 
 func TestAPIClient_RenewPayment(t *testing.T) {
-	apiClient,_ := NewAPIClient(ApiKey, true)
+	apiClient, _ := NewAPIClient(ApiKey, true)
 	txHash, err := apiClient.RenewPayment("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Duration(3600), PrivateKey)
 	if err != nil {
 		t.Errorf("RenewPayment() error = %v", err)

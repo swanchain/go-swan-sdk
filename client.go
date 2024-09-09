@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/swanchain/go-swan-sdk/contract"
 	"log"
 	"math/big"
 	"net/http"
@@ -100,15 +105,20 @@ Create a task via the orchestrator.
 func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 	var createTaskResp CreateTaskResp
 
-	if req.AutoPay && req.PrivateKey == "" {
-		return createTaskResp, fmt.Errorf("please provide private_key if using auto_pay")
+	if req.WalletAddress == "" && req.PrivateKey == "" {
+		return nil, fmt.Errorf("please provide WalletAddress or PrivateKey")
 	}
 
-	publicKeyAddress, err := privateKeyToPublicKey(req.PrivateKey)
-	if err != nil {
-		return createTaskResp, err
+	var walletAddress = req.WalletAddress
+	if walletAddress != "" {
+		walletAddress = req.WalletAddress
+	} else {
+		publicKeyAddress, err := privateKeyToPublicKey(req.PrivateKey)
+		if err != nil {
+			return nil, err
+		}
+		walletAddress = publicKeyAddress.String()
 	}
-	var walletAddress = publicKeyAddress.String()
 
 	if req.Region == "" {
 		req.Region = "global"
@@ -164,7 +174,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 		params.Add("preferred_cp", preferredCp)
 	}
 
-	if err = c.login(); err != nil {
+	if err := c.login(); err != nil {
 		return nil, err
 	}
 	if err := c.httpClient.PostForm(apiTask, params, NewResult(&createTaskResp)); err != nil {
