@@ -1,5 +1,7 @@
 package swan
 
+import "time"
+
 type HardwareResult struct {
 	Hardware []*Hardware `json:"hardware"`
 }
@@ -131,12 +133,6 @@ type Requirements struct {
 	Vcpu            string `json:"vcpu"`
 }
 
-type Space struct {
-	ActiveOrder *ActiveOrder `json:"activeOrder"`
-	Name        string       `json:"name"`
-	UUID        string       `json:"uuid"`
-}
-
 type ActiveOrder struct {
 	Config Config `json:"config"`
 }
@@ -150,6 +146,12 @@ type Config struct {
 	Name         string  `json:"name"`
 	PricePerHour float64 `json:"price_per_hour"`
 	Vcpu         int64   `json:"vcpu"`
+}
+
+type Space struct {
+	ActiveOrder *ActiveOrder `json:"activeOrder"`
+	Name        string       `json:"name"`
+	UUID        string       `json:"uuid"`
 }
 
 type PageResult struct {
@@ -177,6 +179,7 @@ type ConfigOrder struct {
 	Status          string `json:"status"`
 	TaskUUID        string `json:"task_uuid"`
 	TxHash          string `json:"tx_hash"`
+	ApproveHash     string `json:"approve_hash"`
 	UpdatedAt       int64  `json:"updated_at"`
 	UUID            string `json:"uuid"`
 }
@@ -188,13 +191,12 @@ type TaskQueryReq struct {
 }
 
 /*
-	CreateTaskReq
+CreateTaskReq
 
 PrivateKey:   Required. The wallet's private key
 InstanceType: The type(name) of the hardware. (Default = `C1ae.small`)
 Region:       The region of the hardware. (Default: global)
 Duration:     The duration of the service runtime in seconds. (Default = 3600)
-AutoPay:      Automatically call the submit payment method on the contract and validate payment to get the task deployed. Otherwise, the user must call the `PayAndDeployTask` function to submit payment method on the contract and validate payment.
 JobSourceUri: Optional. The job source URI to be deployed. If this is provided, app_repo_image and repo_uri are ignored.
 RepoUri:      Optional. The URI of the repo to be deployed. If job_source_uri and app_repo_image are not provided, this is required.
 RepoBranch:   Optional. The branch of the repo to be deployed.
@@ -204,25 +206,25 @@ StartIn:      Optional. The starting time (expected time for the app to be deplo
 PreferredCpList:  Optional. A list of preferred cp account address(es).
 */
 type CreateTaskReq struct {
-	PrivateKey      string   `json:"private_key,omitempty"`
-	InstanceType    string   `json:"instance_type"`
-	Region          string   `json:"region"`
-	Duration        int      `json:"duration"`
-	AutoPay         bool     `json:"auto_pay"`
-	JobSourceUri    string   `json:"job_source_uri"`
-	RepoUri         string   `json:"repo_uri"`
-	RepoBranch      string   `json:"repo_branch"`
-	RepoOwner       string   `json:"repo_owner"`
-	RepoName        string   `json:"repo_name"`
-	StartIn         int      `json:"start_in"`
-	PreferredCpList []string `json:"preferred_cp_list"`
+	PrivateKey      string        `json:"private_key,omitempty"`
+	WalletAddress   string        `json:"wallet_address"`
+	InstanceType    string        `json:"instance_type"`
+	Region          string        `json:"region"`
+	Duration        time.Duration `json:"duration"`
+	JobSourceUri    string        `json:"job_source_uri"`
+	RepoUri         string        `json:"repo_uri"`
+	RepoBranch      string        `json:"repo_branch"`
+	RepoOwner       string        `json:"repo_owner"`
+	RepoName        string        `json:"repo_name"`
+	StartIn         int           `json:"start_in"`
+	PreferredCpList []string      `json:"preferred_cp_list"`
 }
 
 type CreateTaskResp struct {
 	Task         Task        `json:"task"`
 	ConfigOrder  ConfigOrder `json:"config_order"`
 	TxHash       string      `json:"tx_hash"`
-	Id           string      `json:"id"`
+	ApproveHash  string      `json:"approve_hash"`
 	TaskUuid     string      `json:"task_uuid"`
 	InstanceType string      `json:"instance_type"`
 	Price        float64     `json:"price"`
@@ -249,13 +251,12 @@ type PaymentResult struct {
 	ConfigOrder
 }
 
-type ReNewTaskResp struct {
+type RenewTaskResp struct {
 	ConfigOrder ConfigOrder `json:"config_order"`
 	Task        Task        `json:"task"`
 }
 
 type TerminateTaskResp struct {
-	Id         string `json:"id"`
 	Retryable  bool   `json:"retryable"`
 	TaskStatus string `json:"task_status"`
 }
