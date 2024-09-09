@@ -223,7 +223,7 @@ type CreateTaskResp struct {
 	Task         Task        `json:"task"`
 	ConfigOrder  ConfigOrder `json:"config_order"`
 	TxHash       string      `json:"tx_hash"`
-	Id           string      `json:"id"`
+	ApproveHash  string      `json:"approve_hash"`
 	TaskUuid     string      `json:"task_uuid"`
 	InstanceType string      `json:"instance_type"`
 	Price        float64     `json:"price"`

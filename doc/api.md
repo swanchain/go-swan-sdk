@@ -71,18 +71,18 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error)
 ```
 Inputs:
 
-| Field Name      | Type       | Description                                                                          |
-| --------------- | ---------- |--------------------------------------------------------------------------------------|
-| PrivateKey      | `string`   | The private key associated with the task. This field is optional and may be omitted. |
-| InstanceType    | `string`   | The type of instance to be used for the task.                                        |
-| Region          | `string`   | The region where the task will be executed.                                          |
-| Duration        | `int`      | The duration (in minutes or hours) for which the task will run.                      |
-| RepoUri         | `string`   | The URI of the repository containing the code to be used.                            |
-| RepoBranch      | `string`   | The branch of the repository to be checked out.                                      |
-| RepoOwner       | `string`   | The owner of the repository.                                                         |
-| RepoName        | `string`   | The name of the repository.                                                          |
-| StartIn         | `int`      | The delay (in seconds) before the task starts.                                       |
-| PreferredCpList | `[]string` | A list of preferred CPs that should be used during the task execution.               |
+| Field Name      | Type            | Description                                                                          |
+| --------------- | --------------- | ------------------------------------------------------------------------------------ |
+| PrivateKey      | `string`        | The private key associated with the task. This field is optional and may be omitted. |
+| InstanceType    | `string`        | The type of instance to be used for the task. (Default: "C1ae.small")                |
+| Region          | `string`        | The region where the task will be executed.                                          |
+| Duration        | `time.Duration` | The duration for which the task will run.                                            |
+| RepoUri         | `string`        | The URI of the repository containing the code to be used.                            |
+| RepoBranch      | `string`        | The branch of the repository to be checked out.                                      |
+| RepoOwner       | `string`        | The owner of the repository.                                                         |
+| RepoName        | `string`        | The name of the repository.                                                          |
+| StartIn         | `int`           | The delay (in seconds) before the task starts. (Default: 300)                        |
+| PreferredCpList | `[]string`      | A list of preferred CPs that should be used during the task execution.               |
 
 Outputs:
 
@@ -91,7 +91,7 @@ Outputs:
 | Task         | [Task](#task-1)             | The `Task` struct containing details about the created task.         |
 | ConfigOrder  | [ConfigOrder](#configorder) | The `ConfigOrder` struct containing the configuration order details. |
 | TxHash       | `string`                    | Transaction hash for the task creation.                              |
-| Id           | `string`                    | Unique identifier for the task.                                      |
+| ApproveHash  | `string`                    | Transaction hash for the token approve.                              |
 | TaskUuid     | `string`                    | Universally unique identifier for the task.                          |
 | InstanceType | `string`                    | Type of instance created for the task.                               |
 | Price        | `float64`                   | Price for the task.                                                  |
@@ -100,16 +100,16 @@ Outputs:
 
 ## PayAndDeployTask
 ```go
-func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration int64, instanceType string) (PaymentResult, error)
+func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration time.Duration, instanceType string) (PaymentResult, error)
 ```
 Inputs:
 
-| Field Name   | Type     | Description                                                          |
-| ------------ | -------- | -------------------------------------------------------------------- |
-| taskUuid     | `string` | The universally unique identifier (UUID) of the task to be deployed. |
-| privateKey   | `string` | The private key used for payment authorization.                      |
-| duration     | `int64`  | The duration (in minutes or hours) for which the task will run.      |
-| instanceType | `string` | The type of instance to be used for the task.                        |
+| Field Name   | Type            | Description                                                          |
+| ------------ | --------------- | -------------------------------------------------------------------- |
+| taskUuid     | `string`        | The universally unique identifier (UUID) of the task to be deployed. |
+| privateKey   | `string`        | The private key used for payment authorization.                      |
+| duration     | `time.Duration` | The duration for which the task will run.                            |
+| instanceType | `string`        | The type of instance to be used for the task.                        |
 
 Outputs:
 
@@ -121,13 +121,13 @@ Outputs:
 
 ## EstimatePayment
 ```go
-func (c *APIClient) EstimatePayment(instanceType string, duration int) (float64, error)
+func (c *APIClient) EstimatePayment(instanceType string, duration time.Duration) (float64, error)
 ```
 Inputs:
-| Field Name   | Type     | Description                                                     |
-| ------------ | -------- | --------------------------------------------------------------- |
-| duration     | `int64`  | The duration (in minutes or hours) for which the task will run. |
-| instanceType | `string` | The type of instance to be used for the task.                   |
+| Field Name   | Type            | Description                                   |
+| ------------ | --------------- | --------------------------------------------- |
+| duration     | `time.Duration` | The duration for which the task will run.     |
+| instanceType | `string`        | The type of instance to be used for the task. |
 
 Outputs:
 | Field Name | Type      | Description                 |
@@ -136,15 +136,15 @@ Outputs:
 
 ## RenewTask
 ```go
-func (c *APIClient) RenewTask(taskUuid string, duration int, privateKey string, txHash string) (*RenewTaskResp, error) 
+func (c *APIClient) RenewTask(taskUuid string, duration time.Duration, privateKey string, txHash string) (*RenewTaskResp, error) 
 ```
 In:
-| Field Name | Type     | Description                                                          |
-| ---------- | -------- | -------------------------------------------------------------------- |
-| taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
-| duration   | `int64`  | The duration (in minutes or hours) for which the task will run.      |
-| privateKey | `string` | The private key used for payment authorization.                      |
-| txHash     | `string` | The paid tx_hash.                                                    |
+| Field Name | Type            | Description                                                          |
+| ---------- | --------------- | -------------------------------------------------------------------- |
+| taskUuid   | `string`        | The universally unique identifier (UUID) of the task to be deployed. |
+| duration   | `time.Duration` | The duration for which the task will run.                            |
+| privateKey | `string`        | The private key used for payment authorization.                      |
+| txHash     | `string`        | The paid tx_hash.                                                    |
 
 Outputs:
 
@@ -156,14 +156,14 @@ Outputs:
 
 ## RenewPayment
 ```go
-func (c *APIClient) RenewPayment(taskUuid string, duration int, privateKey string) (string, error)
+func (c *APIClient) RenewPayment(taskUuid string, duration time.Duration, privateKey string) (string, error)
 ```
 Inputs:
-| Field Name | Type     | Description                                                          |
-| ---------- | -------- | -------------------------------------------------------------------- |
-| taskUuid   | `string` | The universally unique identifier (UUID) of the task to be deployed. |
-| duration   | `int64`  | The duration (seconds) for which the task will run.      |
-| privateKey | `string` | The private key used for payment authorization.                      |
+| Field Name | Type            | Description                                                          |
+| ---------- | --------------- | -------------------------------------------------------------------- |
+| taskUuid   | `string`        | The universally unique identifier (UUID) of the task to be deployed. |
+| duration   | `time.Duration` | The duration for which the task will run.                            |
+| privateKey | `string`        | The private key used for payment authorization.                      |
 
 Outputs:
 | Field Name | Type     | Description       |
@@ -212,9 +212,9 @@ Input:
 | Size       | `uint`   | The number of tasks per page.               |
 
 Outputs:
-| Field Name | Type                       | Description                  |
-| ---------- | -------------------------- | ---------------------------- |
-| total      | int64                      | The total of data.           |
+| Field Name | Type                       | Description                       |
+| ---------- | -------------------------- | --------------------------------- |
+| total      | int64                      | The total of data.                |
 | list       | []*[TaskInfo](#taskinfo-1) | The containing task list details. |
 
 
@@ -230,9 +230,9 @@ Input:
 | taskUUID   | `string` | The universally unique identifier (UUID) of the task |
 
 Outputs:
-| Field Name | Type                     | Description |
-| ---------- | ------------------------ | ----------- |
-| TaskInfo   | *[TaskInfo](#taskinfo-1) | The containing task details.       |
+| Field Name | Type                     | Description                  |
+| ---------- | ------------------------ | ---------------------------- |
+| TaskInfo   | *[TaskInfo](#taskinfo-1) | The containing task details. |
 
 
 
@@ -253,12 +253,12 @@ The `HardwareBaseInfo` struct holds the fundamental details about the hardware.
 ## RegionDetail
 The `RegionDetail` struct, containing detailed information for that specific region.
 
-| Field Name        | Type         | Description                                                                                 |
-| ----------------- | ------------ | ------------------------------------------------------------------------------------------- |
-| AvailableResource | `int64`      | The amount of available resources for the hardware in this region.                          |
-| DirectAccessCp    | `[][]string` | A 2D slice of strings representing the direct access control points (CPs) for the hardware. |
-| NoneCollateral    | `int64`      | The amount of resources that have no collateral in this region.                             |
-| Whitelist         | `int64`      | The number of whitelisted items related to the hardware in this region.                     |
+| Field Name        | Type         | Description                                                                |
+| ----------------- | ------------ | -------------------------------------------------------------------------- |
+| AvailableResource | `int64`      | The amount of available resources for the hardware in this region.         |
+| DirectAccessCp    | `[][]string` | A 2D slice of strings representing the direct access CPs for the hardware. |
+| NoneCollateral    | `int64`      | The amount of resources that have no collateral in this region.            |
+| Whitelist         | `int64`      | The number of whitelisted items related to the hardware in this region.    |
 
 ## Task
 The `Task` struct contains information about a task, including its lifecycle and associated details.
@@ -293,8 +293,8 @@ The `TaskDetail` struct contains detailed information about the task, including 
 | Amount            | `float64`                      | Amount associated with the task.                                       |
 | BidderLimit       | `int64`                        | Limit on the number of bidders.                                        |
 | CreatedAt         | `int64`                        | Timestamp when the task detail was created.                            |
-| DCCSelectedCpList | `any`                          | List of selected control points.                                       |
-| Duration          | `int64`                        | Duration (seconds) for which the task will run.            |
+| DCCSelectedCpList | `any`                          | List of selected CPs.                                                  |
+| Duration          | `int64`                        | Duration (seconds) for which the task will run.                        |
 | EndAt             | `int64`                        | Timestamp when the task ends.                                          |
 | Hardware          | `string`                       | Hardware configuration for the task.                                   |
 | JobResultURI      | `string`                       | URI where the job results can be accessed.                             |
@@ -317,7 +317,7 @@ The `Requirements` struct defines the hardware and resource requirements for the
 | Hardware        | `string` | Hardware required for the task.              |
 | HardwareType    | `string` | Type of hardware required.                   |
 | Memory          | `string` | Memory required for the task.                |
-| PreferredCpList | `any`    | List of preferred control points.            |
+| PreferredCpList | `any`    | List of preferred CPs.                       |
 | Region          | `string` | Region where the hardware should be located. |
 | Storage         | `string` | Storage requirements for the task.           |
 | UpdateMaxLag    | `any`    | Maximum allowable lag for updates.           |
@@ -364,12 +364,12 @@ The `ConfigOrder` struct provides detailed information about the configuration o
 | --------------- | -------- | --------------------------------------------------------------------- |
 | ConfigID        | `int64`  | Unique identifier for the configuration.                              |
 | CreatedAt       | `int64`  | Timestamp when the configuration order was created.                   |
-| Duration        | `int64`  | Duration (in minutes or hours) of the configuration order.            |
+| Duration        | `int64`  | Duration(seconds) of the configuration order.                         |
 | EndedAt         | `int`    | Timestamp when the configuration order ended.                         |
 | ErrorCode       | `int`    | Error code associated with the configuration order, if any.           |
 | ID              | `int64`  | Unique identifier for the order.                                      |
 | OrderType       | `string` | Type of the order.                                                    |
-| PreferredCpList | `any`    | List of preferred control points (CPs) for the configuration order.   |
+| PreferredCpList | `any`    | List of preferred CPs for the configuration order.                    |
 | RefundTxHash    | `string` | Transaction hash for the refund associated with the order.            |
 | Region          | `string` | Region where the configuration is applied.                            |
 | SpaceID         | `string` | Identifier for the space associated with the configuration order.     |

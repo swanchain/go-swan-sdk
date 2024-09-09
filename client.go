@@ -174,7 +174,6 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 	taskUuid := createTaskResp.Task.UUID
 	createTaskResp.TaskUuid = taskUuid
 	createTaskResp.InstanceType = req.InstanceType
-	createTaskResp.Id = taskUuid
 
 	estimatePrice, err := c.EstimatePayment(req.InstanceType, req.Duration.Seconds())
 	if err != nil {
@@ -190,6 +189,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error) {
 		}
 		createTaskResp.ConfigOrder = payment.ConfigOrder
 		createTaskResp.TxHash = payment.TxHash
+		createTaskResp.ApproveHash = payment.ApproveHash
 		log.Printf("Task created successfully, taskUuid=%s, txHash=%s, instanceType=%s", taskUuid, txHash, req.InstanceType)
 	}
 	return createTaskResp, nil
