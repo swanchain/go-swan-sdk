@@ -56,13 +56,13 @@ func NewAPIClient(apiKey string, isTestnet ...bool) (*APIClient, error) {
 	return &apiClient, nil
 }
 
-func (c *APIClient) login() {
+func (c *APIClient) login() error {
 	var token string
 	if err := c.httpClient.PostForm(apiLogin, url.Values{"api_key": {c.apiKey}}, NewResult(&token)); err != nil {
-		log.Fatalf("failed to login in orchestrator, error: %v", err)
-		return
+		return err
 	}
 	c.httpClient.header.Set("Authorization", "Bearer "+token)
+	return nil
 }
 
 func (c *APIClient) Hardwares() ([]*Hardware, error) {
@@ -170,7 +170,9 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 		params.Add("preferred_cp", preferredCp)
 	}
 
-	c.login()
+	if err = c.login(); err != nil {
+		return nil, err
+	}
 	if err := c.httpClient.PostForm(apiTask, params, NewResult(&createTaskResp)); err != nil {
 		return nil, fmt.Errorf("failed to create task, error: %v", err)
 	}

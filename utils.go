@@ -3,10 +3,10 @@ package swan
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"log"
-	"strconv"
 )
 
 const (
@@ -18,7 +18,7 @@ func contractInfoVerified(contractInfo ContractInfo, signature string, orchestra
 	// Convert contract info to JSON string
 	messageJSON, err := json.Marshal(contractInfo)
 	if err != nil {
-		log.Fatalf("failed to marshal contract info: %v", err)
+		return false
 	}
 
 	hashedMessage := []byte("\x19Ethereum Signed Message:\n" + strconv.Itoa(len(string(messageJSON))) + string(messageJSON))
