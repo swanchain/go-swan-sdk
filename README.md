@@ -3,20 +3,21 @@
 [![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/)
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/swanchain)
 
+`go-swan-sdk` is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API.
+
 ## Table Of Contents<!-- omit in toc -->
 
-- [Quickstart](#quickstart)
-  - [Installation](#installation)
-  - [Get Orchestrator API Key](#get-orchestrator-api-key)
+- [Getting started](#getting-started)
+  - [Prerequisites](#prerequisites)
+    - [Go version](#go-version)
+    - [Swan API Key](#swan-api-key)
+  - [Getting go-swan-sdk](#getting-go-swan-sdk)
   - [Usage](#usage)
     - [New client](#new-client)
-    - [Create task](#create-task)
-      - [1. Automatic payment and deployment](#1-automatic-payment-and-deployment)
-      - [2. Manual payment and deployment](#2-manual-payment-and-deployment)
+    - [Select a hardware form hardwares](#select-a-hardware-form-hardwares)
+    - [Create a task to deploy an application](#create-a-task-to-deploy-an-application)
     - [Get the access url of the application](#get-the-access-url-of-the-application)
-    - [Renewal task](#renewal-task)
-      - [1. Automatic payment](#1-automatic-payment)
-      - [2. Manual payment](#2-manual-payment)
+    - [Renew task duration](#renew-task-duration)
     - [Terminate Task](#terminate-task)
     - [Get Task Detail](#get-task-detail)
     - [Get Task List](#get-task-list)
@@ -24,81 +25,71 @@
 - [License](#license)
 
 
-## Quickstart
+## Getting started
 
-This guide details the steps needed to install or update the SWAN SDK for Go. The SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API.
+### Prerequisites
 
-### Installation
+#### Go version
 
-To use Swan SDK, you first need to install it and its dependencies. Before installing Swan SDK, install Go 1.22.3 or later.
+`go-swan-sdk` requires [Go](https://go.dev/) version [1.21](https://go.dev/doc/devel/release#go1.21.0) or above.
 
 
-Install the latest Swan SDK release via **go**:
-
-```bash
-go get github.com/swanchain/go-swan-sdk
-```
-
-### Get Orchestrator API Key
+#### Swan API Key
 
 To use `swan-sdk`, an Orchestrator API key is required.
 
 Steps to get an API Key:
 
-- Go to [Orchestrator Dashboard](https://orchestrator.swanchain.io/provider-status), switch network to Mainnet.
+- Go to [Orchestrator Dashboard](https://orchestratorswanchain.io/provider-status), switch network toMainnet.
 - Login through MetaMask.
 - Click the user icon on the top right.
 - Click 'Show API-Key' -> 'New API Key'
 - Store your API Key safely, do not share with others.
 
+### Getting go-swan-sdk
+
+With [Go's module support](https://go.dev/wiki/Modules#how-to-use-modules), `go [build|run|test]` automatically fetches the necessary dependencies when you add the import in your code:
+
+```sh
+import "github.com/swanchain/go-swan-sdk"
+```
+
+Alternatively, use `go get`:
+
+```sh
+go get -u github.com/swanchain/go-swan-sdk
+```
 
 ### Usage
 
 #### [New client]()
 
 ```go
-import "github.com/swanchain/go-swan-sdk"
-
-client := swan.NewAPIClient("<SWAN_API_KEY>")
+client, err := swan.NewAPIClient("<SWAN_API_KEY>")
 ```
 
-#### [Create task]()
+#### [Select a hardware form hardwares]()
 
-##### 1. Automatic payment and deployment
+`Hardwares` lists all hardwares, you can select a  hardware you want.
+
 ```go
-var req = CreateTaskReq{
+hardwares, err := swan.Hardwares()
+```
+
+#### [Create a task to deploy an application]()
+
+create, pay and deploy a task
+
+```go
+createTaskResp, err := client.CreateTask(&CreateTaskReq{
     PrivateKey: "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>",
     AutoPay:    true, 
-    RepoUri:    "<Your_RESOURCE_URL>",    
-}
-createTaskResp, err := client.CreateTask(&createReq)
-if err != nil {
-    log.Fatalln(err)
-}
-log.Printf("task result: %v", createTaskResp)
-```
-
-##### 2. Manual payment and deployment
-```go
-var req = CreateTaskReq{
-    PrivateKey: "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>",
-    AutoPay:      false,
-    RepoUri:      "<Your_RESOURCE_URL>",
+    RepoUri:    "<Your_RESOURCE_URL>",
     Duration:     3600, 
-    InstanceType: "C1ae.small", 
-}
-createTaskResp, err := client.CreateTask(&createReq)
-if err != nil {
-    log.Fatalln(err)
-}
-log.Printf("task result: %v", createTaskResp)
+    InstanceType: "C1ae.small", // hardware_type   
+})
 
-taskUuid := "<TASK_UUID>" // taskUuid: returned by create task
-payAndDeployTaskResp, err := apiClient.PayAndDeployTask(taskUuid, <YOUR_WALLET_ADDRESS_PRIVATE_KEY>, <Duration>, <InstanceType>)
-if err != nil {
-    log.Fatalln(err)
-}
-log.Printf("pay and deploy task response: %v", payAndDeployTaskResp)
+taskUUID := createTaskResp.Task.UUID
 ```
 
 #### [Get the access url of the application]()
@@ -119,63 +110,34 @@ A sample output:
 It shows that this task has three applications. Open the URL in the web browser you will view the application's information if it is running correctly.
 
 
-#### [Renewal task]()
+#### [Renew task duration]()
 
-##### 1. Automatic payment
+`RenewTask` extends the duration of the task before completed
+
 ```go
-resp, err := apiClient.ReNewTask("<TASK_UUID>", <Duration>, true,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
-if err != nil {
-	log.Fatalln(err)
-}
-log.Printf("renew task with auto-pay response: %v", resp)
-```
-
-##### 2. Manual payment
-```go
-txHash, err := apiClient.RenewPayment("<TASK_UUID>", <Duration>, "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>")
-if err != nil {
-	log.Fatalln(err)
-}
-
-resp, err := apiClient.ReNewTask("<TASK_UUID>", <Duration>, false, "",txHash)
-if err != nil {
-	log.Fatalln(err)
-}
-log.Printf("renew task with manual-pay response: %v", resp)
+resp, err := apiClient.RenewTask("<TASK_UUID>", <Duration>, true,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
 ```
 
 #### [Terminate Task]()
 
+`TerminateTask`  terminates the task
+
 ```go
 resp, err := apiClient.TerminateTask("<TASK_UUID>")
-if err != nil {
-    log.Fatalln(err)
-}
-log.Printf("terminate task response: %v", resp)
 ```
 
 #### [Get Task Detail]()
 ```go
 resp, err := apiClient.TaskInfo("<TASK_UUID>")
-if err != nil {
-    log.Fatalln(err)
-}
-log.Printf("get task info response: %v", resp)
 ```
 
 #### [Get Task List]()
 ```go
-var req = &TaskQueryReq{
-    Wallet: "<YOUR_WALLET_ADDRESS>",
+total, resp, err := apiClient.Tasks(&TaskQueryReq{
+    Wallet: "<PAY_WALLET_ADDRESS>",
     Page:   0,
     Size:   10,
-}
-
-total, resp, err := apiClient.Tasks(req)
-if err != nil {
-    log.Fatalln(err)
-}
-log.Printf("get task list response, total: %d, data: %v", total, resp)
+})
 ```
 
 ## A Sample Tutorial
@@ -185,4 +147,4 @@ For more detailed samples, consult [SDK Samples](https://github.com/swanchain/go
 
 ## License
 
-The GOLANG SWAN SDK is released under the **MIT** license, details of which can be found in the LICENSE file.
+The `go-swan-sdk` is released under the **MIT** license, details of which can be found in the LICENSE file.
