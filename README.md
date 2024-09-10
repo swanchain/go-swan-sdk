@@ -40,7 +40,7 @@ To use `swan-sdk`, an Orchestrator API key is required.
 
 Steps to get an API Key:
 
-- Go to [Orchestrator Dashboard](https://orchestratorswanchain.io/provider-status), switch network toMainnet.
+- Go to [Orchestrator Dashboard](https://orchestrator.swanchain.io/provider-status), switch network toMainnet.
 - Login through MetaMask.
 - Click the user icon on the top right.
 - Click 'Show API-Key' -> 'New API Key'
