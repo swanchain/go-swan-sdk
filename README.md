@@ -114,7 +114,7 @@ It shows that this task has three applications. Open the URL in the web browser 
 `RenewTask` extends the duration of the task before completed
 
 ```go
-resp, err := apiClient.RenewTask("<TASK_UUID>", <Duration>,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
+resp, err := client.RenewTask("<TASK_UUID>", <Duration>,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
 ```
 
 #### [Terminate Task]()
@@ -122,17 +122,17 @@ resp, err := apiClient.RenewTask("<TASK_UUID>", <Duration>,"<YOUR_WALLET_ADDRESS
 `TerminateTask`  terminates the task
 
 ```go
-resp, err := apiClient.TerminateTask("<TASK_UUID>")
+resp, err := client.TerminateTask("<TASK_UUID>")
 ```
 
 #### [Get Task Detail]()
 ```go
-resp, err := apiClient.TaskInfo("<TASK_UUID>")
+resp, err := client.TaskInfo("<TASK_UUID>")
 ```
 
 #### [Get Task List]()
 ```go
-total, resp, err := apiClient.Tasks(&TaskQueryReq{
+total, resp, err := client.Tasks(&TaskQueryReq{
     Wallet: "<PAY_WALLET_ADDRESS>",
     Page:   0,
     Size:   10,
