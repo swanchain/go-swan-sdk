@@ -62,13 +62,13 @@ go get -u github.com/swanchain/go-swan-sdk
 
 ### Usage
 
-#### [New client]()
+#### [New client](./doc/api.md#newclient)
 
 ```go
 client, err := swan.NewAPIClient("<SWAN_API_KEY>")
 ```
 
-#### [Select a hardware form hardwares]()
+#### [Select a hardware form hardwares](./doc/api.md#hardwares)
 
 `Hardwares` lists all hardwares, you can select a  hardware you want.
 
@@ -76,7 +76,9 @@ client, err := swan.NewAPIClient("<SWAN_API_KEY>")
 hardwares, err := swan.Hardwares()
 ```
 
-#### [Create a task to deploy an application]()
+**Note: Available resource types are available [here](./doc/hardware.md)**
+
+#### [Create a task to deploy an application](./doc/api.md#create-task)
 
 create, pay and deploy a task
 
@@ -91,7 +93,7 @@ createTaskResp, err := client.CreateTask(&CreateTaskReq{
 taskUUID := createTaskResp.Task.UUID
 ```
 
-#### [Get the access url of the application]()
+#### [Get the access url of the application](./doc/api.md#getrealurl)
 ```go
 // Get application instances URL
 appUrls, err := client.GetRealUrl("<TASK_UUID>")
@@ -109,7 +111,7 @@ A sample output:
 It shows that this task has three applications. Open the URL in the web browser you will view the application's information if it is running correctly.
 
 
-#### [Renew task duration]()
+#### [Renew task duration](./doc/api.md#renewtask)
 
 `RenewTask` extends the duration of the task before completed
 
@@ -117,7 +119,7 @@ It shows that this task has three applications. Open the URL in the web browser 
 resp, err := client.RenewTask("<TASK_UUID>", <Duration>,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
 ```
 
-#### [Terminate Task]()
+#### [Terminate Task](./doc/api.md#terminatetask)
 
 `TerminateTask`  terminates the task
 
@@ -125,12 +127,12 @@ resp, err := client.RenewTask("<TASK_UUID>", <Duration>,"<YOUR_WALLET_ADDRESS_PR
 resp, err := client.TerminateTask("<TASK_UUID>")
 ```
 
-#### [Get Task Detail]()
+#### [Get Task Detail](./doc/api.md#taskinfo)
 ```go
 resp, err := client.TaskInfo("<TASK_UUID>")
 ```
 
-#### [Get Task List]()
+#### [Get Task List](./doc/api.md#task)
 ```go
 total, resp, err := client.Tasks(&TaskQueryReq{
     Wallet: "<PAY_WALLET_ADDRESS>",
