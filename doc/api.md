@@ -22,7 +22,6 @@
   - [ActiveOrder](#activeorder)
   - [Config](#config)
   - [ConfigOrder](#configorder)
-  - [Task](#task-1)
   - [TaskInfo](#taskinfo-1)
   - [ComputingProvider](#computingprovider)
   - [Job](#job)
@@ -37,10 +36,10 @@ func NewClient(apiKey, isTestnet) *APIClient
 ```
 Inputs:
 
-|  Field Name      | type   | description                                   |
-| --------- | ------ | --------------------------------------------- |
-| apiKey    | string | Swan API key                                  |
-| isTestnet | bool   | If set to true use testnet, otherwise maninet |
+| Field Name | type   | description                                   |
+| ---------- | ------ | --------------------------------------------- |
+| apiKey     | string | Swan API key                                  |
+| isTestnet  | bool   | If set to true use testnet, otherwise maninet |
 
 Outputs:
 
@@ -58,9 +57,9 @@ Outputs:
 
 Inputs:
 
-|  Field Name      | type | description                                                       |
-| --------- | ---- | ----------------------------------------------------------------- |
-| available | bool | If set to true to get only available instances, otherwise get all |
+| Field Name | type | description                                                       |
+| ---------- | ---- | ----------------------------------------------------------------- |
+| available  | bool | If set to true to get only available instances, otherwise get all |
 
 
 Outputs:
@@ -94,7 +93,7 @@ Outputs:
 
 | Field Name   | Type                        | Description                                                          |
 | ------------ | --------------------------- | -------------------------------------------------------------------- |
-| Task         | [Task](#task-1)             | The `Task` struct containing details about the created task.         |
+| Task         | [Task](#task)             | The `Task` struct containing details about the created task.         |
 | ConfigOrder  | [ConfigOrder](#configorder) | The `ConfigOrder` struct containing the configuration order details. |
 | TxHash       | `string`                    | Transaction hash for the task creation.                              |
 | ApproveHash  | `string`                    | Transaction hash for the token approve.                              |
@@ -157,7 +156,7 @@ Outputs:
 | Field Name  | Type                                  | Description                                                                |
 | ----------- | ------------------------------------- | -------------------------------------------------------------------------- |
 | ConfigOrder | [ConfigOrder](#configorder)(embedded) | The `ConfigOrder` struct containing details about the configuration order. |
-| Task        | [Task](#task-1)                       | The `Task` struct containing details about the task.                       |
+| Task        | [Task](#task)                       | The `Task` struct containing details about the task.                       |
 
 
 ## RenewPayment
@@ -386,33 +385,6 @@ The `ConfigOrder` struct provides detailed information about the configuration o
 | TxHash          | `string` | Transaction hash associated with the order.                           |
 | UpdatedAt       | `int64`  | Timestamp when the configuration order was last updated.              |
 | UUID            | `string` | Universally unique identifier for the configuration order.            |
-
-## Task
-
-The `Task` struct contains information about the task, including its lifecycle and associated details.
-
-| Field Name    | Type          | Description                                                              |
-| ------------- | ------------- | ------------------------------------------------------------------------ |
-| Comments      | `string`      | Comments or notes about the task.                                        |
-| CreatedAt     | `int64`       | Timestamp when the task was created.                                     |
-| EndAt         | `int64`       | Timestamp when the task ended.                                           |
-| ID            | `int64`       | Unique identifier for the task.                                          |
-| LeadingJobID  | `string`      | Identifier for the leading job associated with this task.                |
-| Name          | `string`      | Name of the task.                                                        |
-| RefundAmount  | `string`      | Amount to be refunded for the task.                                      |
-| RefundWallet  | `string`      | Wallet address where the refund should be sent.                          |
-| Source        | `string`      | Source of the task.                                                      |
-| StartAt       | `int64`       | Timestamp when the task started.                                         |
-| StartIn       | `int64`       | Delay (in seconds) before the task starts.                               |
-| Status        | `string`      | Current status of the task.                                              |
-| TaskDetail    | `*TaskDetail` | Pointer to the `TaskDetail` struct containing detailed task information. |
-| TaskDetailCid | `string`      | CID (Content Identifier) for the task details.                           |
-| TxHash        | `any`         | Transaction hash associated with the task.                               |
-| Type          | `string`      | Type of the task.                                                        |
-| UpdatedAt     | `int64`       | Timestamp when the task was last updated.                                |
-| UserID        | `int64`       | Unique identifier for the user associated with the task.                 |
-| UUID          | `string`      | Universally unique identifier for the task.                              |
-
 
 ## TaskInfo
 
