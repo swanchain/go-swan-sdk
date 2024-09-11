@@ -2,7 +2,7 @@
 
 - [APIs](#apis)
   - [NewClient](#newclient)
-  - [Hardwares](#hardwares)
+  - [Instances](#instances)
   - [Create task](#create-task)
   - [PayAndDeployTask](#payanddeploytask)
   - [EstimatePayment](#estimatepayment)
@@ -13,7 +13,7 @@
   - [Tasks](#tasks)
   - [TaskInfo](#taskinfo)
 - [Models](#models)
-  - [HardwareBaseInfo](#hardwarebaseinfo)
+  - [InstanceBaseInfo](#instancebaseinfo)
   - [RegionDetail](#regiondetail)
   - [Task](#task)
   - [TaskDetail](#taskdetail)
@@ -48,20 +48,27 @@ Outputs:
 *APIClient            # Created swan Client instance.
 ```
 
-## Hardwares
+## Instances
 
-`Hardwares` Fetch available instance resources
+`Instances` Fetch instance resources
 
 ```go
-func (c *APIClient) Hardwares() ([]*Hardware, error) 
+(c *APIClient) InstanceResources(available ...bool) ([]*InstanceResource, error)
 ```
+
+Inputs:
+
+| name      | type | description                                                       |
+| --------- | ---- | ----------------------------------------------------------------- |
+| available | bool | If set to true to get only available instances, otherwise get all |
+
 
 Outputs:
 
 | Field Name       | Type                                      | Description                                                                                                                                            |
 | ---------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| HardwareBaseInfo | [HardwareBaseInfo](#hardwarebaseinfo)     | Contains the basic details of the hardware.                                                                                                            |
-| Type             | `string`                                  | The type of the hardware (distinct from `Type` in `HardwareBaseInfo`).                                                                                 |
+| InstanceBaseInfo | [InstanceBaseInfo](#InstanceBaseInfo)     | Contains the basic details of the hardware.                                                                                                            |
+| Type             | `string`                                  | The type of the hardware (distinct from `Type` in `InstanceBaseInfo`).                                                                                 |
 | Region           | `[]string`                                | A slice of strings representing the regions where this hardware is available.                                                                          |
 | RegionDetails    | map[string]*[RegionDetail](#regiondetail) | A map where the key is the region name, and the value is a pointer to `RegionDetail` struct, containing detailed information for that specific region. |
 
@@ -71,18 +78,17 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error)
 ```
 Inputs:
 
-| Field Name      | Type            | Description                                                                          |
-| --------------- | --------------- | ------------------------------------------------------------------------------------ |
-| PrivateKey      | `string`        | The private key associated with the task. This field is optional and may be omitted. |
-| InstanceType    | `string`        | The type of instance to be used for the task. (Default: "C1ae.small")                |
-| Region          | `string`        | The region where the task will be executed.                                          |
-| Duration        | `time.Duration` | The duration for which the task will run.                                            |
-| RepoUri         | `string`        | The URI of the repository containing the code to be used.                            |
-| RepoBranch      | `string`        | The branch of the repository to be checked out.                                      |
-| RepoOwner       | `string`        | The owner of the repository.                                                         |
-| RepoName        | `string`        | The name of the repository.                                                          |
-| StartIn         | `int`           | The delay (in seconds) before the task starts. (Default: 300)                        |
-| PreferredCpList | `[]string`      | A list of preferred CPs that should be used during the task execution.               |
+| Field Name      | Type            | Description                                                            |
+| --------------- | --------------- | ---------------------------------------------------------------------- |
+| PrivateKey      | `string`        | The private key of the user's wallet.                                  |
+| WalletAddress   | `string`        | The user's wallet address.                                             |
+| InstanceType    | `string`        | The type of instance to be used for the task. (Default: "C1ae.small")  |
+| Region          | `string`        | The region where the task will be executed.                            |
+| Duration        | `time.Duration` | The duration for which the task will run.                              |
+| RepoUri         | `string`        | The URI of the repository containing the code to be used.              |
+| RepoBranch      | `string`        | The branch of the repository to be checked out.                        |
+| StartIn         | `int`           | The delay (in seconds) before the task starts. (Default: 300)          |
+| PreferredCpList | `[]string`      | A list of preferred CPs that should be used during the task execution. |
 
 Outputs:
 
@@ -136,7 +142,7 @@ Outputs:
 
 ## RenewTask
 ```go
-func (c *APIClient) RenewTask(taskUuid string, duration time.Duration, privateKey string, txHash string) (*RenewTaskResp, error) 
+(c *APIClient) RenewTask(taskUuid string, duration time.Duration, privateKey string, paidTxHash ...string) (*RenewTaskResp, error) 
 ```
 In:
 | Field Name | Type            | Description                                                          |
@@ -144,7 +150,7 @@ In:
 | taskUuid   | `string`        | The universally unique identifier (UUID) of the task to be deployed. |
 | duration   | `time.Duration` | The duration for which the task will run.                            |
 | privateKey | `string`        | The private key used for payment authorization.                      |
-| txHash     | `string`        | The paid tx_hash.                                                    |
+| paidTxHash | `string`        | The paid tx_hash.                                                    |
 
 Outputs:
 
@@ -238,8 +244,8 @@ Outputs:
 
 # Models
 
-## HardwareBaseInfo
-The `HardwareBaseInfo` struct holds the fundamental details about the hardware.
+## InstanceBaseInfo
+The `InstanceBaseInfo` struct holds the fundamental details about the hardware.
 
 | Field Name  | Type     | Description                           |
 | ----------- | -------- | ------------------------------------- |

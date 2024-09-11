@@ -14,7 +14,7 @@ const (
 
 func TestAPIClient_CreateTaskWithAutoPay(t *testing.T) {
 	var req = CreateTaskReq{
-		Duration:     time.Hour,
+		Duration:     2 * time.Hour,
 		PrivateKey:   PrivateKey,
 		JobSourceUri: JobSourceUri,
 	}
@@ -124,7 +124,7 @@ func TestAPIClient_EstimatePayment(t *testing.T) {
 
 func TestAPIClient_ReNewTask(t *testing.T) {
 	apiClient, _ := NewAPIClient(ApiKey, true)
-	resp, err := apiClient.RenewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Hour, PrivateKey, "")
+	resp, err := apiClient.RenewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Hour, PrivateKey)
 	if err != nil {
 		t.Errorf("ReNewTask() error = %v", err)
 	}

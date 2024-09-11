@@ -4,11 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/swanchain/go-swan-sdk/contract"
 	"log"
 	"math/big"
 	"net/http"
@@ -17,6 +12,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/swanchain/go-swan-sdk/contract"
 )
 
 type APIClient struct {
@@ -252,21 +253,24 @@ func (c *APIClient) EstimatePayment(instanceType string, duration float64) (floa
 	return priceInt * (duration / 3600), nil
 }
 
-func (c *APIClient) RenewTask(taskUuid string, duration time.Duration, privateKey string, txHash string) (*RenewTaskResp, error) {
+func (c *APIClient) RenewTask(taskUuid string, duration time.Duration, privateKey string, paidTxHash ...string) (*RenewTaskResp, error) {
 	if strings.TrimSpace(taskUuid) == "" {
 		return nil, fmt.Errorf("invalid taskUuid")
 	}
 
-	if privateKey == "" && txHash == "" {
+	if privateKey == "" && len(paidTxHash) == 0 {
 		return nil, fmt.Errorf("provide a txHash or privateKey")
 	}
-	if txHash == "" {
+
+	var txHash string
+	if len(paidTxHash) == 0 {
 		reNewPaymentTxHash, err := c.RenewPayment(taskUuid, duration, privateKey)
 		if err != nil {
 			return nil, err
 		}
 		txHash = reNewPaymentTxHash
 	} else {
+		txHash = paidTxHash[0]
 		log.Printf("Using given payment transaction hash, txHash=%s", txHash)
 	}
 

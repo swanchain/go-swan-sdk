@@ -1,6 +1,6 @@
 # GO SWAN SDK <!-- omit in toc -->
 
-[![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/)
+[![Made by Swan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/)
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/swanchain)
 
 `go-swan-sdk` is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API.
@@ -8,56 +8,76 @@
 ## Table Of Contents<!-- omit in toc -->
 
 - [Getting started](#getting-started)
-  - [Prerequisites](#prerequisites)
-    - [Go version](#go-version)
+    - [Go Version](#go-version)
     - [Swan API Key](#swan-api-key)
-  - [Getting go-swan-sdk](#getting-go-swan-sdk)
+    - [Using go-swan-sdk](#using-go-swan-sdk)
+  - [Quickstart](#quickstart)
   - [Usage](#usage)
     - [New client](#new-client)
-    - [Select a hardware form hardwares](#select-a-hardware-form-hardwares)
-    - [Create a task to deploy an application](#create-a-task-to-deploy-an-application)
-    - [Get the access url of the application](#get-the-access-url-of-the-application)
-    - [Renew task duration](#renew-task-duration)
-    - [Terminate Task](#terminate-task)
-    - [Get Task Detail](#get-task-detail)
-    - [Get Task List](#get-task-list)
-- [A Sample Tutorial](#a-sample-tutorial)
+    - [Fetch all instance resources](#fetch-all-instance-resources)
+    - [Create and deploy a task](#create-and-deploy-a-task)
+    - [Access application instances of an existing task](#access-application-instances-of-an-existing-task)
+    - [Renew duration of an existing task](#renew-duration-of-an-existing-task)
+    - [Terminate an existing task](#terminate-an-existing-task)
+    - [Check information of an existing task](#check-information-of-an-existing-task)
+    - [Check all task list information belonging to a wallet address](#check-all-task-list-information-belonging-to-a-wallet-address)
+- [More Samples](#more-samples)
+- [More Resources](#more-resources)
 - [License](#license)
 
 
 ## Getting started
 
-### Prerequisites
-
-#### Go version
+#### Go Version
 
 `go-swan-sdk` requires [Go](https://go.dev/) version [1.21](https://go.dev/doc/devel/release#go1.21.0) or above.
 
 
 #### Swan API Key
 
-To use `swan-sdk`, an Orchestrator API key is required.
+To use `swan-sdk`, an Swan API key is required. Steps to get an API Key:
 
-Steps to get an API Key:
-
-- Go to [Orchestrator Dashboard](https://orchestrator.swanchain.io/provider-status), switch network toMainnet.
-- Login through MetaMask.
+- Go to [Orchestrator Dashboard](https://orchestrator.swanchain.io/provider-status), switch network to [Swan Chain Mainnet](https://docs.swanchain.io/network-reference/readme).
+- Login with your wallet.
 - Click the user icon on the top right.
-- Click 'Show API-Key' -> 'New API Key'
-- Store your API Key safely, do not share with others.
+- Click `Show API-Key` -> `New API Key`
 
-### Getting go-swan-sdk
+#### Using go-swan-sdk
 
-With [Go's module support](https://go.dev/wiki/Modules#how-to-use-modules), `go [build|run|test]` automatically fetches the necessary dependencies when you add the import in your code:
+With [Go's module support](https://go.dev/wiki/Modules#how-to-use-modules), `go [build|run|test]` automatically fetches the necessary dependencies when you add `import`in your project:
 
-```sh
+```go
 import "github.com/swanchain/go-swan-sdk"
 ```
 
-Alternatively, use `go get`:
+To update the SDK use `go get -u` to retrieve the latest version of the SDK:
 
 ```sh
 go get -u github.com/swanchain/go-swan-sdk
+```
+### Quickstart
+To use `go-swan-sdk`, you must first import it, and you can create and deploy instance applications quickly.
+
+```
+import "github.com/swanchain/go-swan-sdk"
+
+createTaskResp, err := client.CreateTask(&CreateTaskReq{
+    PrivateKey:   "<PRIVATE_KEY>",
+    RepoUri:      "https://github.com/swanchain/awesome-swanchain/tree/main/hello_world",
+    Duration:     2 * time.Hour,
+    InstanceType: "C1ae.small", 
+})
+
+taskUUID := createTaskResp.Task.UUID
+resp, err := client.TaskInfo(taskUUID)
+
+//Get application instances URL
+appUrls, err := client.GetRealUrl(taskUUID)
+if err != nil {
+	log.Fatalln(err)
+}
+log.Printf("app urls: %v", appUrls)
+
 ```
 
 ### Usage
@@ -68,32 +88,34 @@ go get -u github.com/swanchain/go-swan-sdk
 client, err := swan.NewAPIClient("<SWAN_API_KEY>")
 ```
 
-#### [Select a hardware form hardwares](./doc/api.md#hardwares)
-
-`Hardwares` lists all hardwares, you can select a  hardware you want.
+#### [Fetch all instance resources](./doc/api.md#instances)
+Through `InstanceResources` you can get a list of available instance resources including their region information. You can select one you want to use.
 
 ```go
-hardwares, err := swan.Hardwares()
+instances, err := swan.InstanceResources(true)
 ```
 
-**Note: Available resource types are available [here](./doc/hardware.md)**
+> **Note:** All Instance type list can be found [here](./doc/instance.md)
 
-#### [Create a task to deploy an application](./doc/api.md#create-task)
+#### [Create and deploy a task](./doc/api.md#create-task)
 
-create, pay and deploy a task
+Deploy a application, if you have set `PrivateKey`, this task will be payed automaiclly, and deploy to computing providers on Swan Chain Network:
 
 ```go
-createTaskResp, err := client.CreateTask(&CreateTaskReq{
+task, err := client.CreateTask(&CreateTaskReq{
     PrivateKey:   "<YOUR_WALLET_ADDRESS_PRIVATE_KEY>",
-    RepoUri:      "<Your_RESOURCE_URL>",
-    Duration:     time.Duration(3600),
-    InstanceType: "C1ae.small", // hardware_type
+    RepoUri:      "<YOUR_PROJECT_GITHUB_URL>",
+    Duration:      2 * time.Hour,
+    InstanceType: "C1ae.small", 
 })
 
-taskUUID := createTaskResp.Task.UUID
+taskUUID := task.Task.UUID
+
 ```
 
-#### [Get the access url of the application](./doc/api.md#getrealurl)
+#### [Access application instances of an existing task](./doc/api.md#getrealurl)
+You can easily get the deployed application instances for an existing task.
+
 ```go
 // Get application instances URL
 appUrls, err := client.GetRealUrl("<TASK_UUID>")
@@ -108,42 +130,55 @@ A sample output:
 ['https://krfswstf2g.anlu.loveismoney.fun', 'https://l2s5o476wf.cp162.bmysec.xyz', 'https://e2uw19k9uq.cp5.node.study']
 ```
 
-It shows that this task has three applications. Open the URL in the web browser you will view the application's information if it is running correctly.
+It shows that this task has three applications. Visit the URL in the web browser you will view the application's information if it is running correctly.
 
 
-#### [Renew task duration](./doc/api.md#renewtask)
+#### [Renew duration of an existing task](./doc/api.md#renewtask)
 
 `RenewTask` extends the duration of the task before completed
 
 ```go
-resp, err := client.RenewTask("<TASK_UUID>", <Duration>,"<YOUR_WALLET_ADDRESS_PRIVATE_KEY>", "")
+resp, err := client.RenewTask("<TASK_UUID>", <Duration>,"<PRIVATE_KEY>")
 ```
 
-#### [Terminate Task](./doc/api.md#terminatetask)
+#### [Terminate an existing task](./doc/api.md#terminatetask)
+You can early terminate an existing task and its application instances. By terminating task, you will stop all the related running application instances and thus you will get refund of the remaining task duration.
 
-`TerminateTask`  terminates the task
 
 ```go
 resp, err := client.TerminateTask("<TASK_UUID>")
 ```
 
-#### [Get Task Detail](./doc/api.md#taskinfo)
+#### [Check information of an existing task](./doc/api.md#taskinfo)
+You can get the task details by the `taskUUID`
+
 ```go
 resp, err := client.TaskInfo("<TASK_UUID>")
 ```
 
-#### [Get Task List](./doc/api.md#task)
+#### [Check all task list information belonging to a wallet address](./doc/api.md#task)
+You can get all tasks deployed from one wallet address
 ```go
 total, resp, err := client.Tasks(&TaskQueryReq{
-    Wallet: "<PAY_WALLET_ADDRESS>",
+    Wallet: "<WALLET_ADDRESS>",
     Page:   0,
     Size:   10,
 })
 ```
 
-## A Sample Tutorial
 
-For more detailed samples, consult [SDK Samples](https://github.com/swanchain/go-swan-sdk/blob/main/client_test.go).
+## More Samples
+
+For more pratical samples, consult [go-swan-sdk-samples](https://github.com/swanchain/go-swan-sdk-samples).
+
+
+## More Resources
+More resources about swan SDK can be found
+ - [Swan Console platform](https://console.swanchain.io)
+ - [Deploying with Swan SDK](https://docs.swanchain.io/start-here/readme/deploying-with-swan-sdk)
+ - [Python-swan-sdk](https://github.com/swanchain/python-swan-sdk)
+ - [Python-swan-sdk-samples](https://github.com/swanchain/python-swan-sdk)
+ 
 
 
 ## License
