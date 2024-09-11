@@ -77,23 +77,28 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error)
 ```
 Inputs:
 
-| Field Name      | Type            | Description                                                            |
-| --------------- | --------------- | ---------------------------------------------------------------------- |
-| PrivateKey      | `string`        | The private key of the user's wallet.                                  |
-| WalletAddress   | `string`        | The user's wallet address.                                             |
-| InstanceType    | `string`        | The type of instance to be used for the task. (Default: "C1ae.small")  |
-| Region          | `string`        | The region where the task will be executed.                            |
-| Duration        | `time.Duration` | The duration for which the task will run.                              |
-| RepoUri         | `string`        | The URI of the repository containing the code to be used.              |
-| RepoBranch      | `string`        | The branch of the repository to be checked out.                        |
-| StartIn         | `int`           | The delay (in seconds) before the task starts. (Default: 300)          |
-| PreferredCpList | `[]string`      | A list of preferred CPs that should be used during the task execution. |
+| Field Name      | Type            | Description                                                                                                           |
+| --------------- | --------------- | --------------------------------------------------------------------------------------------------------------------- |
+| PrivateKey      | `string`        | The private key of the user's wallet.                                                                                 |
+| WalletAddress   | `string`        | The user's wallet address.                                                                                            |
+| InstanceType    | `string`        | instance type of hardware config. Defaults to 'C1ae.small' (Free tier).                                               |
+| Region          | `string`        | The region where the task will be executed.                                                                           |
+| Duration        | `time.Duration` | The duration for which the task will run.                                                                             |
+| RepoUri         | `string`        | The The URI of the repo to be deployed. The repository must contain a `Dockerfile` or `deploy.yaml`. Please see [RepoUri](repo_uri.md) |
+| RepoBranch      | `string`        | The branch of the repo to be deployed.                                                                                |
+| StartIn         | `int`           | The delay (in seconds) before the task starts. (Default: 300)                                                         |
+| PreferredCpList | `[]string`      | A list of preferred cp account addresses.                                                                             |
+
+**Note:**
+- `RepoUri` must contain a `Dockerfile` or `deploy.yaml` 
+  - `deploy.yaml` needs to follow the following [standards](https://docs.lagrangedao.org/spaces/intro/lagrange-definition-language-ldl) 
+
 
 Outputs:
 
 | Field Name   | Type                        | Description                                                          |
 | ------------ | --------------------------- | -------------------------------------------------------------------- |
-| Task         | [Task](#task)             | The `Task` struct containing details about the created task.         |
+| Task         | [Task](#task)               | The `Task` struct containing details about the created task.         |
 | ConfigOrder  | [ConfigOrder](#configorder) | The `ConfigOrder` struct containing the configuration order details. |
 | TxHash       | `string`                    | Transaction hash for the task creation.                              |
 | ApproveHash  | `string`                    | Transaction hash for the token approve.                              |
@@ -156,7 +161,7 @@ Outputs:
 | Field Name  | Type                                  | Description                                                                |
 | ----------- | ------------------------------------- | -------------------------------------------------------------------------- |
 | ConfigOrder | [ConfigOrder](#configorder)(embedded) | The `ConfigOrder` struct containing details about the configuration order. |
-| Task        | [Task](#task)                       | The `Task` struct containing details about the task.                       |
+| Task        | [Task](#task)                         | The `Task` struct containing details about the task.                       |
 
 
 ## RenewPayment
