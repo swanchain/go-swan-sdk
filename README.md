@@ -1,7 +1,8 @@
 # GO SWAN SDK <!-- omit in toc -->
 
-[![Made by Swan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/)
+[![Made by Swan Chain](https://img.shields.io/badge/made%20by-SwanChain-green.svg)](https://www.swanchain.io/)
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/swanchain)
+
 
 `go-swan-sdk` is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API.
 
