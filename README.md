@@ -59,17 +59,17 @@ go get -u github.com/swanchain/go-swan-sdk
 ### Quickstart
 To use `go-swan-sdk`, you must first import it, and you can create and deploy instance applications quickly.
 
-```
+```go
 import "github.com/swanchain/go-swan-sdk"
 
-createTaskResp, err := client.CreateTask(&CreateTaskReq{
+task, err := client.CreateTask(&CreateTaskReq{
     PrivateKey:   "<PRIVATE_KEY>",
     RepoUri:      "https://github.com/swanchain/awesome-swanchain/tree/main/hello_world",
     Duration:     2 * time.Hour,
     InstanceType: "C1ae.small", 
 })
 
-taskUUID := createTaskResp.Task.UUID
+taskUUID := task.Task.UUID
 resp, err := client.TaskInfo(taskUUID)
 
 //Get application instances URL
