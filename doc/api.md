@@ -80,7 +80,7 @@ Inputs:
 | --------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | PrivateKey      | `string`        | The private key of the user's wallet.                                                                                                  |
 | WalletAddress   | `string`        | The user's wallet address.                                                                                                             |
-| InstanceType    | `string`        | instance type of instance config. Defaults to 'C1ae.small' (Free tier).                                                                |
+| InstanceType    | `string`        | instance type of instance config. Defaults to 'C1ae.small' (Free tier). All Instance type list can be found [here](./instance.md)  |
 | Region          | `string`        | The region where the task will be executed.                                                                                            |
 | Duration        | `time.Duration` | The duration for which the task will run.                                                                                              |
 | RepoUri         | `string`        | The The URI of the repo to be deployed. The repository must contain a `Dockerfile` or `deploy.yaml`. Please see [RepoUri](repo_uri.md) |
