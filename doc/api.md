@@ -37,7 +37,7 @@ func NewClient(apiKey, isTestnet) *APIClient
 ```
 Inputs:
 
-| name      | type   | description                                   |
+|  Field Name      | type   | description                                   |
 | --------- | ------ | --------------------------------------------- |
 | apiKey    | string | Swan API key                                  |
 | isTestnet | bool   | If set to true use testnet, otherwise maninet |
@@ -58,7 +58,7 @@ Outputs:
 
 Inputs:
 
-| name      | type | description                                                       |
+|  Field Name      | type | description                                                       |
 | --------- | ---- | ----------------------------------------------------------------- |
 | available | bool | If set to true to get only available instances, otherwise get all |
 
