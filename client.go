@@ -51,6 +51,12 @@ func NewAPIClient(apiKey string, isTestnet ...bool) (*APIClient, error) {
 		return nil, fmt.Errorf("failed to get instance resources, error: %v", err)
 	}
 
+	chainId, netWorkName, err := getNetWorkInfo(contractDetail.RpcUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get chain info, error: %v", err)
+	}
+	fmt.Printf("Logging in Swan Chain %s(%d) \n", netWorkName, chainId)
+
 	apiClient.instanceList = instanceList
 	apiClient.contractDetail = contractDetail
 	return &apiClient, nil
@@ -585,6 +591,25 @@ func (c *APIClient) getInstanceByInstanceType(instanceType string) (*InstanceBas
 		return nil, nil
 	}
 	return &baseInfo, fmt.Errorf("invalid instanceType: %s", instanceType)
+}
+
+func getNetWorkInfo(rpc string) (int64, string, error) {
+	client, err := ethclient.Dial(rpc)
+	if err != nil {
+		return 0, "", err
+	}
+	defer client.Close()
+
+	chainId, err := client.ChainID(context.Background())
+	if err != nil {
+		return 0, "", err
+	}
+
+	var network = "Testnet"
+	if chainId.Int64() == 254 {
+		network = "Mainnet"
+	}
+	return chainId.Int64(), network, nil
 }
 
 type Result struct {
