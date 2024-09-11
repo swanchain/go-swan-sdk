@@ -2,24 +2,24 @@ package swan
 
 import "time"
 
-type HardwareResult struct {
-	Hardware []*Hardware `json:"hardware"`
+type InstanceResult struct {
+	Instances []*InstanceResource `json:"hardware"`
 }
 
-type Hardware struct {
-	HardwareBaseInfo
+type InstanceResource struct {
+	InstanceBaseInfo
 	Type          string                   `json:"hardware_type"`
 	Region        []string                 `json:"region"`
 	RegionDetails map[string]*RegionDetail `json:"region_detail"`
 }
 
-type HardwareBaseInfo struct {
+type InstanceBaseInfo struct {
 	Description string `json:"hardware_description"`
 	ID          int64  `json:"hardware_id"`
-	Name        string `json:"hardware_name"`
+	Name        string `json:"hardware_type"`
 	Price       string `json:"hardware_price"`
 	Status      string `json:"hardware_status"`
-	Type        string `json:"hardware_type"`
+	Type        string `json:"hardware_name"`
 }
 
 type RegionDetail struct {
@@ -193,15 +193,14 @@ type TaskQueryReq struct {
 /*
 CreateTaskReq
 
-PrivateKey:   Required. The wallet's private key
+PrivateKey:   The wallet's private key
+WalletAddress:The wallet's address
 InstanceType: The type(name) of the hardware. (Default = `C1ae.small`)
 Region:       The region of the hardware. (Default: global)
 Duration:     The duration of the service runtime in seconds. (Default = 3600)
 JobSourceUri: Optional. The job source URI to be deployed. If this is provided, app_repo_image and repo_uri are ignored.
 RepoUri:      Optional. The URI of the repo to be deployed. If job_source_uri and app_repo_image are not provided, this is required.
 RepoBranch:   Optional. The branch of the repo to be deployed.
-RepoOwner:    Optional. The owner of the repo to be deployed.
-RepoName:     Optional. The name of the repo to be deployed.
 StartIn:      Optional. The starting time (expected time for the app to be deployed, not mandatory). (Default = 300)
 PreferredCpList:  Optional. A list of preferred cp account address(es).
 */
@@ -214,8 +213,6 @@ type CreateTaskReq struct {
 	JobSourceUri    string        `json:"job_source_uri"`
 	RepoUri         string        `json:"repo_uri"`
 	RepoBranch      string        `json:"repo_branch"`
-	RepoOwner       string        `json:"repo_owner"`
-	RepoName        string        `json:"repo_name"`
 	StartIn         int           `json:"start_in"`
 	PreferredCpList []string      `json:"preferred_cp_list"`
 }

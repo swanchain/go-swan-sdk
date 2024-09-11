@@ -14,7 +14,7 @@ const (
 
 func TestAPIClient_CreateTaskWithAutoPay(t *testing.T) {
 	var req = CreateTaskReq{
-		Duration:     time.Duration(3600),
+		Duration:     time.Hour,
 		PrivateKey:   PrivateKey,
 		JobSourceUri: JobSourceUri,
 	}
@@ -45,7 +45,7 @@ func TestAPIClient_PayAndDeployTask(t *testing.T) {
 
 	// taskUuid:  returned by create task
 	taskUuid := "a9d2f2ca-8819-43f7-9347-7ccf0ea11822"
-	payAndDeployTaskResp, err := apiClient.PayAndDeployTask(taskUuid, PrivateKey, time.Duration(3600), "C1ae.small")
+	payAndDeployTaskResp, err := apiClient.PayAndDeployTask(taskUuid, PrivateKey, time.Hour, "C1ae.small")
 	if err != nil {
 		t.Errorf("PayAndDeployTask() error = %v", err)
 	}
@@ -77,7 +77,7 @@ func TestAPIClient_Tasks(t *testing.T) {
 
 func TestAPIClient_Hardwares(t *testing.T) {
 	apiClient, _ := NewAPIClient(ApiKey, true)
-	resp, err := apiClient.Hardwares()
+	resp, err := apiClient.InstanceResources()
 	if err != nil {
 		t.Errorf("Hardwares() error = %v", err)
 	}
@@ -124,7 +124,7 @@ func TestAPIClient_EstimatePayment(t *testing.T) {
 
 func TestAPIClient_ReNewTask(t *testing.T) {
 	apiClient, _ := NewAPIClient(ApiKey, true)
-	resp, err := apiClient.RenewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Duration(3600), PrivateKey, "")
+	resp, err := apiClient.RenewTask("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Hour, PrivateKey, "")
 	if err != nil {
 		t.Errorf("ReNewTask() error = %v", err)
 	}
@@ -133,7 +133,7 @@ func TestAPIClient_ReNewTask(t *testing.T) {
 
 func TestAPIClient_RenewPayment(t *testing.T) {
 	apiClient, _ := NewAPIClient(ApiKey, true)
-	txHash, err := apiClient.RenewPayment("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Duration(3600), PrivateKey)
+	txHash, err := apiClient.RenewPayment("a9d2f2ca-8819-43f7-9347-7ccf0ea11822", time.Hour, PrivateKey)
 	if err != nil {
 		t.Errorf("RenewPayment() error = %v", err)
 	}

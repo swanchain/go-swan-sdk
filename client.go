@@ -23,7 +23,7 @@ type APIClient struct {
 	apiKey         string
 	httpClient     *HttpClient
 	contractDetail ContractDetail
-	hardwareList   []*Hardware
+	instanceList   []*InstanceResource
 }
 
 func NewAPIClient(apiKey string, isTestnet ...bool) (*APIClient, error) {
@@ -45,12 +45,12 @@ func NewAPIClient(apiKey string, isTestnet ...bool) (*APIClient, error) {
 		return nil, fmt.Errorf("failed to get contract detail, error: %v", err)
 	}
 
-	hardwareList, err := apiClient.Hardwares()
+	instanceList, err := apiClient.InstanceResources()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get hardware, error: %v", err)
+		return nil, fmt.Errorf("failed to get instance resources, error: %v", err)
 	}
 
-	apiClient.hardwareList = hardwareList
+	apiClient.instanceList = instanceList
 	apiClient.contractDetail = contractDetail
 	return &apiClient, nil
 }
@@ -64,14 +64,24 @@ func (c *APIClient) login() error {
 	return nil
 }
 
-func (c *APIClient) Hardwares() ([]*Hardware, error) {
-	var result HardwareResult
+func (c *APIClient) InstanceResources(available ...bool) ([]*InstanceResource, error) {
+	var result InstanceResult
 
 	if err := c.httpClient.Get(apiMachines, nil, NewResult(&result)); err != nil {
 		return nil, err
 	}
 
-	return result.Hardware, nil
+	if len(available) > 0 && available[0] {
+		var data []*InstanceResource
+		for _, instance := range result.Instances {
+			instanceCp := instance
+			if instanceCp.Status == "available" {
+				data = append(data, instanceCp)
+			}
+		}
+		return data, nil
+	}
+	return result.Instances, nil
 }
 
 func (c *APIClient) TaskInfo(taskUUID string) (*TaskInfo, error) {
@@ -99,9 +109,6 @@ func (c *APIClient) Tasks(req *TaskQueryReq) (total int64, list []*TaskInfo, err
 	return
 }
 
-/*
-Create a task via the orchestrator.
-*/
 func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 	var createTaskResp CreateTaskResp
 
@@ -136,14 +143,14 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 		req.InstanceType = "C1ae.small"
 	}
 
-	if _, err := c.getHardwareByInstanceType(req.InstanceType); err != nil {
+	if _, err := c.getInstanceByInstanceType(req.InstanceType); err != nil {
 		return nil, err
 	}
 	log.Printf("Using %s machine, region=%s  duration=%d (seconds) \n", req.InstanceType, req.Region, req.Duration)
 
 	if req.JobSourceUri == "" {
 		if req.RepoUri != "" {
-			sourceUri, err := c.getSourceUri(req.RepoUri, walletAddress, req.InstanceType, req.RepoBranch, req.RepoOwner, req.RepoName)
+			sourceUri, err := c.getSourceUri(req.RepoUri, walletAddress, req.InstanceType, req.RepoBranch)
 			if err != nil {
 				return nil, fmt.Errorf("please provide JobSourceUri, or RepoUri, error: %v", err)
 			}
@@ -233,7 +240,7 @@ func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration time.
 }
 
 func (c *APIClient) EstimatePayment(instanceType string, duration float64) (float64, error) {
-	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
+	hardwareBaseInfo, err := c.getInstanceByInstanceType(instanceType)
 	if err != nil {
 		return 0, err
 	}
@@ -292,7 +299,7 @@ func (c *APIClient) RenewPayment(taskUuid string, duration time.Duration, privat
 		return "", fmt.Errorf("failed to get task info, taskUuid: %s, error: %v", taskUuid, err)
 	}
 	instanceType := taskInfo.Task.TaskDetail.Hardware
-	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
+	hardwareBaseInfo, err := c.getInstanceByInstanceType(instanceType)
 	if err != nil {
 		return "", err
 	}
@@ -405,10 +412,10 @@ func (c *APIClient) GetRealUrl(taskUuid string) ([]string, error) {
 	return deployedUrl, nil
 }
 
-func (c *APIClient) getSourceUri(repoUri, walletAddress string, instanceType string, repoBranch, repoOwner, repoName string) (string, error) {
+func (c *APIClient) getSourceUri(repoUri, walletAddress string, instanceType string, repoBranch string) (string, error) {
 	var jobSourceUriResult JobSourceUriResult
 
-	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
+	hardwareBaseInfo, err := c.getInstanceByInstanceType(instanceType)
 	if err != nil {
 		return "", err
 	}
@@ -417,8 +424,6 @@ func (c *APIClient) getSourceUri(repoUri, walletAddress string, instanceType str
 		return "", fmt.Errorf("no wallet_address provided")
 	}
 	var reqData = make(url.Values)
-	reqData.Set("repo_owner", repoOwner)
-	reqData.Set("repo_name", repoName)
 	reqData.Set("repo_branch", repoBranch)
 	reqData.Set("wallet_address", walletAddress)
 	reqData.Set("hardware_id", strconv.FormatInt(hardwareBaseInfo.ID, 10))
@@ -431,8 +436,8 @@ func (c *APIClient) getSourceUri(repoUri, walletAddress string, instanceType str
 }
 
 func (c *APIClient) verifyHardwareRegion(instanceType, region string) bool {
-	for _, hardware := range c.hardwareList {
-		if hardware.Name == instanceType {
+	for _, hardware := range c.instanceList {
+		if hardware.Type == instanceType {
 			for _, r := range hardware.Region {
 				if region == r || (strings.ToLower(region) == "global" && hardware.Status == "available") {
 					return true
@@ -444,7 +449,7 @@ func (c *APIClient) verifyHardwareRegion(instanceType, region string) bool {
 }
 
 func (c *APIClient) submitPayment(taskUuid, privateKey string, duration time.Duration, instanceType string) (string, string, error) {
-	hardwareBaseInfo, err := c.getHardwareByInstanceType(instanceType)
+	hardwareBaseInfo, err := c.getInstanceByInstanceType(instanceType)
 	if err != nil {
 		return "", "", err
 	}
@@ -558,16 +563,16 @@ func (c *APIClient) getContractInfo(validate bool) (ContractDetail, error) {
 	return contractResult.ContractInfo.ContractDetail, nil
 }
 
-func (c *APIClient) getHardwareByInstanceType(instanceType string) (*HardwareBaseInfo, error) {
-	var baseInfo HardwareBaseInfo
+func (c *APIClient) getInstanceByInstanceType(instanceType string) (*InstanceBaseInfo, error) {
+	var baseInfo InstanceBaseInfo
 
 	if strings.TrimSpace(instanceType) == "" {
 		return nil, fmt.Errorf("invalid instanceType")
 	}
 
-	for _, hardware := range c.hardwareList {
-		if hardware.Name == instanceType {
-			baseInfo = hardware.HardwareBaseInfo
+	for _, hardware := range c.instanceList {
+		if hardware.Type == instanceType {
+			baseInfo = hardware.InstanceBaseInfo
 			break
 		}
 	}
