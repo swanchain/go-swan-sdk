@@ -8,18 +8,17 @@ type InstanceResult struct {
 
 type InstanceResource struct {
 	InstanceBaseInfo
-	Type          string                   `json:"hardware_type"`
 	Region        []string                 `json:"region"`
 	RegionDetails map[string]*RegionDetail `json:"region_detail"`
 }
 
 type InstanceBaseInfo struct {
-	Description string `json:"hardware_description"`
-	ID          int64  `json:"hardware_id"`
-	Name        string `json:"hardware_type"`
-	Price       string `json:"hardware_price"`
-	Status      string `json:"hardware_status"`
-	Type        string `json:"hardware_name"`
+	Description  string `json:"hardware_description"`
+	ID           int64  `json:"hardware_id"`
+	ResourceType string `json:"hardware_type"`
+	Price        string `json:"hardware_price"`
+	Status       string `json:"hardware_status"`
+	Type         string `json:"hardware_name"`
 }
 
 type RegionDetail struct {

@@ -70,6 +70,8 @@ task, err := client.CreateTask(&CreateTaskReq{
 })
 
 taskUUID := task.Task.UUID
+
+// Get task deployment info
 resp, err := client.TaskInfo(taskUUID)
 
 //Get application instances URL
@@ -111,6 +113,7 @@ task, err := client.CreateTask(&CreateTaskReq{
 })
 
 taskUUID := task.Task.UUID
+log.Printf("taskUUID: %v", taskUUID)
 
 ```
 

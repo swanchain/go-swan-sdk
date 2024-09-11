@@ -66,9 +66,8 @@ Outputs:
 
 | Field Name       | Type                                      | Description                                                                                                                                            |
 | ---------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| InstanceBaseInfo | [InstanceBaseInfo](#InstanceBaseInfo)     | Contains the basic details of the hardware.                                                                                                            |
-| Type             | `string`                                  | The type of the hardware (distinct from `Type` in `InstanceBaseInfo`).                                                                                 |
-| Region           | `[]string`                                | A slice of strings representing the regions where this hardware is available.                                                                          |
+| InstanceBaseInfo | [InstanceBaseInfo](#InstanceBaseInfo)     | Contains the basic details of the instance.                                                                                                            |
+| Region           | `[]string`                                | A slice of strings representing the regions where this instance is available.                                                                          |
 | RegionDetails    | map[string]*[RegionDetail](#regiondetail) | A map where the key is the region name, and the value is a pointer to `RegionDetail` struct, containing detailed information for that specific region. |
 
 ## Create task
@@ -77,21 +76,21 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (CreateTaskResp, error)
 ```
 Inputs:
 
-| Field Name      | Type            | Description                                                                                                           |
-| --------------- | --------------- | --------------------------------------------------------------------------------------------------------------------- |
-| PrivateKey      | `string`        | The private key of the user's wallet.                                                                                 |
-| WalletAddress   | `string`        | The user's wallet address.                                                                                            |
-| InstanceType    | `string`        | instance type of hardware config. Defaults to 'C1ae.small' (Free tier).                                               |
-| Region          | `string`        | The region where the task will be executed.                                                                           |
-| Duration        | `time.Duration` | The duration for which the task will run.                                                                             |
+| Field Name      | Type            | Description                                                                                                                            |
+| --------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| PrivateKey      | `string`        | The private key of the user's wallet.                                                                                                  |
+| WalletAddress   | `string`        | The user's wallet address.                                                                                                             |
+| InstanceType    | `string`        | instance type of instance config. Defaults to 'C1ae.small' (Free tier).                                                                |
+| Region          | `string`        | The region where the task will be executed.                                                                                            |
+| Duration        | `time.Duration` | The duration for which the task will run.                                                                                              |
 | RepoUri         | `string`        | The The URI of the repo to be deployed. The repository must contain a `Dockerfile` or `deploy.yaml`. Please see [RepoUri](repo_uri.md) |
-| RepoBranch      | `string`        | The branch of the repo to be deployed.                                                                                |
-| StartIn         | `int`           | The delay (in seconds) before the task starts. (Default: 300)                                                         |
-| PreferredCpList | `[]string`      | A list of preferred cp account addresses.                                                                             |
+| RepoBranch      | `string`        | The branch of the repo to be deployed.                                                                                                 |
+| StartIn         | `int`           | The delay (in seconds) before the task starts. (Default: 300)                                                                          |
+| PreferredCpList | `[]string`      | A list of preferred cp account addresses.                                                                                              |
 
 **Note:**
 - `RepoUri` must contain a `Dockerfile` or `deploy.yaml` 
-  - `deploy.yaml` needs to follow the following [standards](https://docs.lagrangedao.org/spaces/intro/lagrange-definition-language-ldl) 
+- `deploy.yaml` needs to follow the following [standards](https://docs.lagrangedao.org/spaces/intro/lagrange-definition-language-ldl) 
 
 
 Outputs:
@@ -249,26 +248,26 @@ Outputs:
 # Models
 
 ## InstanceBaseInfo
-The `InstanceBaseInfo` struct holds the fundamental details about the hardware.
+The `InstanceBaseInfo` struct holds the fundamental details about the instance.
 
 | Field Name  | Type     | Description                           |
 | ----------- | -------- | ------------------------------------- |
-| Description | `string` | A description of the hardware.        |
-| ID          | `int64`  | A unique identifier for the hardware. |
-| Name        | `string` | The name of the hardware.             |
-| Price       | `string` | The price of the hardware.            |
-| Status      | `string` | The status of the hardware.           |
-| Type        | `string` | The type of the hardware.             |
+| Description | `string` | A description of the instance.        |
+| ID          | `int64`  | A unique identifier for the instance. |
+| Name        | `string` | The name of the instance.             |
+| Price       | `string` | The price of the instance.            |
+| Status      | `string` | The status of the instance.           |
+| Type        | `string` | The type of the instance.             |
 
 ## RegionDetail
 The `RegionDetail` struct, containing detailed information for that specific region.
 
 | Field Name        | Type         | Description                                                                |
 | ----------------- | ------------ | -------------------------------------------------------------------------- |
-| AvailableResource | `int64`      | The amount of available resources for the hardware in this region.         |
-| DirectAccessCp    | `[][]string` | A 2D slice of strings representing the direct access CPs for the hardware. |
+| AvailableResource | `int64`      | The amount of available resources for the instance in this region.         |
+| DirectAccessCp    | `[][]string` | A 2D slice of strings representing the direct access CPs for the instance. |
 | NoneCollateral    | `int64`      | The amount of resources that have no collateral in this region.            |
-| Whitelist         | `int64`      | The number of whitelisted items related to the hardware in this region.    |
+| Whitelist         | `int64`      | The number of whitelisted items related to the instance in this region.    |
 
 ## Task
 The `Task` struct contains information about a task, including its lifecycle and associated details.
@@ -306,7 +305,7 @@ The `TaskDetail` struct contains detailed information about the task, including 
 | DCCSelectedCpList | `any`                          | List of selected CPs.                                                  |
 | Duration          | `int64`                        | Duration (seconds) for which the task will run.                        |
 | EndAt             | `int64`                        | Timestamp when the task ends.                                          |
-| Hardware          | `string`                       | Hardware configuration for the task.                                   |
+| Hardware          | `string`                       | Instance configuration for the task.                                   |
 | JobResultURI      | `string`                       | URI where the job results can be accessed.                             |
 | JobSourceURI      | `string`                       | URI where the job source is located.                                   |
 | PricePerHour      | `string`                       | Price per hour for the task.                                           |
@@ -320,15 +319,15 @@ The `TaskDetail` struct contains detailed information about the task, including 
 
 ## Requirements
 
-The `Requirements` struct defines the hardware and resource requirements for the task.
+The `Requirements` struct defines the instance and resource requirements for the task.
 
 | Field Name      | Type     | Description                                  |
 | --------------- | -------- | -------------------------------------------- |
-| Hardware        | `string` | Hardware required for the task.              |
-| HardwareType    | `string` | Type of hardware required.                   |
+| Hardware        | `string` | Instance required for the task.              |
+| HardwareType    | `string` | Type of instance required.                   |
 | Memory          | `string` | Memory required for the task.                |
 | PreferredCpList | `any`    | List of preferred CPs.                       |
-| Region          | `string` | Region where the hardware should be located. |
+| Region          | `string` | Region where the instance should be located. |
 | Storage         | `string` | Storage requirements for the task.           |
 | UpdateMaxLag    | `any`    | Maximum allowable lag for updates.           |
 | Vcpu            | `string` | Number of virtual CPUs required.             |
@@ -353,17 +352,17 @@ The `ActiveOrder` struct contains configuration details for an active order.
 
 ## Config
 
-The `Config` struct defines the configuration of a hardware order, including pricing and resource allocation.
+The `Config` struct defines the configuration of a instance order, including pricing and resource allocation.
 
 | Field Name   | Type      | Description                                 |
 | ------------ | --------- | ------------------------------------------- |
-| Description  | `string`  | Description of the hardware configuration.  |
-| Hardware     | `string`  | Hardware associated with the configuration. |
-| HardwareID   | `int64`   | Unique identifier for the hardware.         |
-| HardwareType | `string`  | Type of hardware used.                      |
+| Description  | `string`  | Description of the instance configuration.  |
+| Hardware     | `string`  | Instance associated with the configuration. |
+| HardwareID   | `int64`   | Unique identifier for the instance.         |
+| HardwareType | `string`  | Type of instance used.                      |
 | Memory       | `int64`   | Amount of memory allocated.                 |
 | Name         | `string`  | Name of the configuration.                  |
-| PricePerHour | `float64` | Price per hour for the hardware.            |
+| PricePerHour | `float64` | Price per hour for the instance.            |
 | Vcpu         | `int64`   | Number of virtual CPUs allocated.           |
 
 ## ConfigOrder
@@ -437,7 +436,7 @@ The `Job` struct contains details about individual jobs, including logs, status,
 | CreatedAt        | `int64`  | Timestamp when the job was created.                         |
 | Duration         | `int64`  | Duration of the job (in seconds).                           |
 | EndedAt          | `int64`  | Timestamp when the job ended.                               |
-| Hardware         | `string` | Description of the hardware used for the job.               |
+| Hardware         | `string` | Description of the instance used for the job.               |
 | ID               | `int64`  | Unique identifier for the job.                              |
 | JobRealURI       | `string` | URI for the actual job resource.                            |
 | JobResultURI     | `string` | URI for the job result.                                     |
