@@ -379,7 +379,7 @@ func (c *APIClient) RenewPayment(taskUuid string, duration time.Duration, privat
 				if err != nil {
 					return "", fmt.Errorf("failed to renew payment, error: %v", err)
 				}
-				log.Printf("Payment submitted, task_uuid=%s, duration=%d, hardwareId=%d", taskUuid, duration, hardwareId)
+				log.Printf("Payment submitted, task_uuid=%s, duration=%f, hardwareId=%d", taskUuid, duration.Seconds(), hardwareId)
 				return transaction.Hash().String(), nil
 			} else if receipt != nil && receipt.Status == 0 {
 				return "", fmt.Errorf("failed to check swan token approve transaction, tx: %s", tokenApproveHash)
