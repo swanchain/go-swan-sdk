@@ -587,10 +587,10 @@ func (c *APIClient) getInstanceByInstanceType(instanceType string) (*InstanceBas
 		}
 	}
 
-	if baseInfo.Description != "" {
-		return nil, nil
+	if baseInfo.Description == "" {
+		return nil, fmt.Errorf("invalid instanceType: %s", instanceType)
 	}
-	return &baseInfo, fmt.Errorf("invalid instanceType: %s", instanceType)
+	return &baseInfo, nil
 }
 
 func getNetWorkInfo(rpc string) (int64, string, error) {
