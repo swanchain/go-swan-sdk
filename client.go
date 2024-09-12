@@ -153,7 +153,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 	if _, err := c.getInstanceByInstanceType(req.InstanceType); err != nil {
 		return nil, err
 	}
-	log.Printf("Using %s machine, region=%s  duration=%f (seconds) \n", req.InstanceType, req.Region, req.Duration.Seconds())
+	log.Printf("Using %s machine, region=%s  duration=%.0f (seconds) \n", req.InstanceType, req.Region, req.Duration.Seconds())
 
 	if req.JobSourceUri == "" {
 		if req.RepoUri != "" {
@@ -205,7 +205,6 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 	}
 	createTaskResp.Price = estimatePrice
 
-	var txHash string
 	if req.PrivateKey != "" {
 		payment, err := c.PayAndDeployTask(taskUuid, req.PrivateKey, req.Duration, req.InstanceType)
 		if err != nil {
@@ -214,7 +213,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 		createTaskResp.ConfigOrder = payment.ConfigOrder
 		createTaskResp.TxHash = payment.TxHash
 		createTaskResp.ApproveHash = payment.ApproveHash
-		log.Printf("Task created successfully, taskUuid=%s, txHash=%s, instanceType=%s", taskUuid, txHash, req.InstanceType)
+		log.Printf("Task created successfully, taskUuid=%s", taskUuid)
 	}
 	return &createTaskResp, nil
 }
@@ -240,8 +239,6 @@ func (c *APIClient) PayAndDeployTask(taskUuid, privateKey string, duration time.
 	}
 	paymentResult.ConfigOrder = validatePaymentResult.ConfigOrder
 	paymentResult.ApproveHash = approveTxHash
-	log.Printf("Payment submitted and validated successfully, taskUuid=%s, approve_hash=%s, tx_hash=%s", taskUuid, approveTxHash, submitPaymentTx)
-
 	return &paymentResult, nil
 
 }
@@ -366,7 +363,6 @@ func (c *APIClient) RenewPayment(taskUuid string, duration time.Duration, privat
 			}
 
 			if receipt != nil && receipt.Status == types.ReceiptStatusSuccessful {
-				fmt.Printf("swan token approve TX Hash: %s \n", tokenApproveHash)
 
 				paymentTransactOpts, err := CreateTransactOpts(client, privateKey)
 				if err != nil {
@@ -379,7 +375,6 @@ func (c *APIClient) RenewPayment(taskUuid string, duration time.Duration, privat
 				if err != nil {
 					return "", fmt.Errorf("failed to renew payment, error: %v", err)
 				}
-				log.Printf("Payment submitted, task_uuid=%s, duration=%f, hardwareId=%d", taskUuid, duration.Seconds(), hardwareId)
 				return transaction.Hash().String(), nil
 			} else if receipt != nil && receipt.Status == 0 {
 				return "", fmt.Errorf("failed to check swan token approve transaction, tx: %s", tokenApproveHash)
@@ -523,7 +518,6 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration time.Dur
 			}
 
 			if receipt != nil && receipt.Status == types.ReceiptStatusSuccessful {
-				fmt.Printf("swan token approve TX Hash: %s \n", tokenApproveHash)
 
 				paymentTransactOpts, err := CreateTransactOpts(client, privateKey)
 				if err != nil {
@@ -533,7 +527,6 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration time.Dur
 				if err != nil {
 					return "", "", fmt.Errorf("failed to submit payment, error: %v", err)
 				}
-				log.Printf("Payment submitted, task_uuid=%s, duration=%f, hardwareId=%d", taskUuid, duration.Seconds(), hardwareId)
 				return tokenApproveHash, transaction.Hash().String(), nil
 			} else if receipt != nil && receipt.Status == 0 {
 				return "", "", fmt.Errorf("failed to check swan token approve transaction, tx: %s", tokenApproveHash)
@@ -552,7 +545,6 @@ func (c *APIClient) validatePayment(txHash, taskUuid string) (*ValidatePaymentRe
 		if err := c.httpClient.PostForm(apiValidatePayment, params, NewResult(&validatePaymentResult)); err != nil {
 			return nil, err
 		}
-		log.Printf("Payment validation request sent, task_uuid=%s, tx_hash=%s \n", taskUuid, txHash)
 		return &validatePaymentResult, nil
 	} else {
 		return nil, fmt.Errorf("tx_hash or task_uuid invalid")
