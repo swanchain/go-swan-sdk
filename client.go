@@ -153,7 +153,7 @@ func (c *APIClient) CreateTask(req *CreateTaskReq) (*CreateTaskResp, error) {
 	if _, err := c.getInstanceByInstanceType(req.InstanceType); err != nil {
 		return nil, err
 	}
-	log.Printf("Using %s machine, region=%s  duration=%d (seconds) \n", req.InstanceType, req.Region, req.Duration)
+	log.Printf("Using %s machine, region=%s  duration=%f (seconds) \n", req.InstanceType, req.Region, req.Duration.Seconds())
 
 	if req.JobSourceUri == "" {
 		if req.RepoUri != "" {
@@ -374,7 +374,7 @@ func (c *APIClient) RenewPayment(taskUuid string, duration time.Duration, privat
 				}
 
 				hardwareIdBigInt := new(big.Int).SetInt64(hardwareId)
-				durationBigInt := new(big.Int).SetInt64(int64(duration))
+				durationBigInt := new(big.Int).SetInt64(int64(duration.Seconds()))
 				transaction, err := paymentContract.RenewPayment(paymentTransactOpts, taskUuid, hardwareIdBigInt, durationBigInt)
 				if err != nil {
 					return "", fmt.Errorf("failed to renew payment, error: %v", err)
@@ -500,7 +500,7 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration time.Dur
 	}
 
 	hardwareIdBigInt := new(big.Int).SetInt64(hardwareId)
-	durationBigInt := new(big.Int).SetInt64(int64(duration))
+	durationBigInt := new(big.Int).SetInt64(int64(duration.Seconds()))
 	approve, err := tokenContract.Approve(approveTransactOpts, common.HexToAddress(c.contractDetail.ClientContractAddress), priceBigInt)
 	if err != nil {
 		return "", "", err
@@ -533,7 +533,7 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration time.Dur
 				if err != nil {
 					return "", "", fmt.Errorf("failed to submit payment, error: %v", err)
 				}
-				log.Printf("Payment submitted, task_uuid=%s, duration=%d, hardwareId=%d", taskUuid, duration, hardwareId)
+				log.Printf("Payment submitted, task_uuid=%s, duration=%f, hardwareId=%d", taskUuid, duration.Seconds(), hardwareId)
 				return tokenApproveHash, transaction.Hash().String(), nil
 			} else if receipt != nil && receipt.Status == 0 {
 				return "", "", fmt.Errorf("failed to check swan token approve transaction, tx: %s", tokenApproveHash)
