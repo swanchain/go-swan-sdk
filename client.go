@@ -280,7 +280,7 @@ func (c *APIClient) RenewTask(taskUuid string, duration time.Duration, privateKe
 	if txHash != "" && taskUuid != "" {
 		var params = make(url.Values)
 		params.Set("task_uuid", taskUuid)
-		params.Set("duration", strconv.FormatFloat(duration.Seconds(), 'f', 2, 64))
+		params.Set("duration", strconv.FormatInt(int64(duration.Seconds()), 10))
 		params.Set("tx_hash", txHash)
 
 		var renewTaskResp RenewTaskResp
