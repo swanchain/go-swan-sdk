@@ -39,7 +39,7 @@ Inputs:
 | Field Name | type   | description                                   |
 | ---------- | ------ | --------------------------------------------- |
 | apiKey     | string | Swan API key                                  |
-| isTestnet  | bool   | If set to true use testnet, otherwise maninet |
+| isTestnet  | bool   | If set to true use testnet, otherwise mainnet |
 
 Outputs:
 
