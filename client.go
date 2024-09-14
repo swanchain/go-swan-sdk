@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"log"
 	"math/big"
 	"net/http"
@@ -312,7 +313,7 @@ func (c *APIClient) RenewPayment(taskUuid string, duration time.Duration, privat
 	}
 	var hardwareId = hardwareBaseInfo.ID
 
-	estimatePrice, err := c.EstimatePayment(instanceType, duration.Seconds())
+	estimatePrice, err := c.estimatePrice(hardwareId, duration.Seconds())
 	if err != nil {
 		return "", err
 	}
@@ -417,6 +418,25 @@ func (c *APIClient) GetRealUrl(taskUuid string) ([]string, error) {
 	return deployedUrl, nil
 }
 
+func (c *APIClient) estimatePrice(hardwareId int64, duration float64) (float64, error) {
+	client, err := ethclient.Dial(c.contractDetail.RpcUrl)
+	if err != nil {
+		return 0, err
+	}
+	defer client.Close()
+
+	paymentContract, err := contract.NewPaymentContract(common.HexToAddress(c.contractDetail.ClientContractAddress), client)
+	if err != nil {
+		return 0, err
+	}
+
+	hardwarePrice, err := paymentContract.HardwareInfo(&bind.CallOpts{}, new(big.Int).SetInt64(hardwareId))
+	if err != nil {
+		return 0, err
+	}
+	return float64(hardwarePrice.PricePerHour.Int64()) * (duration / 3600), nil
+}
+
 func (c *APIClient) getSourceUri(repoUri, walletAddress string, instanceType string, repoBranch string) (string, error) {
 	var jobSourceUriResult JobSourceUriResult
 
@@ -463,7 +483,7 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration time.Dur
 		return "", "", fmt.Errorf("no privateKey provided")
 	}
 	var hardwareId = hardwareBaseInfo.ID
-	estimatePrice, err := c.EstimatePayment(instanceType, duration.Seconds())
+	estimatePrice, err := c.estimatePrice(hardwareId, duration.Seconds())
 	if err != nil {
 		return "", "", err
 	}
@@ -518,7 +538,6 @@ func (c *APIClient) submitPayment(taskUuid, privateKey string, duration time.Dur
 			}
 
 			if receipt != nil && receipt.Status == types.ReceiptStatusSuccessful {
-
 				paymentTransactOpts, err := CreateTransactOpts(client, privateKey)
 				if err != nil {
 					return "", "", err

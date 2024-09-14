@@ -9,26 +9,28 @@ const (
 	ApiKey        = "<API_KEY>"
 	WalletAddress = "<WALLET_ADDRESS>"
 	PrivateKey    = "<WALLET_ADDRESS_PRIVATE_KEY>"
-	JobSourceUri  = "https://test-api.lagrangedao.org/spaces/143a526d-0cfc-41d6-b95c-53a4018829c8"
+	repoUri       = "https://github.com/swanchain/awesome-swanchain/tree/main/hello_world"
 )
 
 func TestAPIClient_CreateTaskWithAutoPay(t *testing.T) {
+	instanceType := "C1ae.medium"
 	var req = CreateTaskReq{
-		Duration:     2 * time.Hour,
+		Duration:     time.Hour,
 		PrivateKey:   PrivateKey,
-		JobSourceUri: JobSourceUri,
+		RepoUri:      repoUri,
+		InstanceType: instanceType,
 	}
 	apiClient, _ := NewAPIClient(ApiKey, true)
 	resp, err := apiClient.CreateTask(&req)
 	if err != nil {
 		t.Errorf("CreateTaskWithAutoPay() error = %v", err)
 	}
-	t.Logf("create task with auto-pay response: %v", resp)
+	t.Logf("create task with auto-pay response: %+v", resp)
 }
 
 func TestAPIClient_CreateTask(t *testing.T) {
 	var req = CreateTaskReq{
-		JobSourceUri:  JobSourceUri,
+		//JobSourceUri:  JobSourceUri,
 		WalletAddress: WalletAddress,
 	}
 
@@ -77,11 +79,11 @@ func TestAPIClient_Tasks(t *testing.T) {
 
 func TestAPIClient_Hardwares(t *testing.T) {
 	apiClient, _ := NewAPIClient(ApiKey, true)
-	resp, err := apiClient.InstanceResources()
+	resp, err := apiClient.InstanceResources(true)
 	if err != nil {
 		t.Errorf("Hardwares() error = %v", err)
 	}
-	t.Logf("get hardware list response: %v", resp)
+	t.Logf("get haredware response, resp: %v", resp)
 }
 
 func TestAPIClient_GetRealUrl(t *testing.T) {
@@ -109,7 +111,7 @@ func Test_getContractInfo(t *testing.T) {
 	if err != nil {
 		t.Errorf("getContractInfo() error = %v", err)
 	}
-	t.Logf("get contract response: %v", resp)
+	t.Logf("get contract response: %+v", resp)
 }
 
 func TestAPIClient_EstimatePayment(t *testing.T) {
