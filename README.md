@@ -60,36 +60,41 @@ go get -u github.com/swanchain/go-swan-sdk
 To use `go-swan-sdk`, you must first import it, and you can create and deploy instance applications quickly.
 
 ```go
+package main
+
 import (
+	"github.com/swanchain/go-swan-sdk"
 	"log"
 	"time"
-	
-	"github.com/swanchain/go-swan-sdk"
 )
 
-client, err := swan.NewAPIClient(<YOUR_API_KEY>)
-if err != nil {
-	log.Fatalf("failed to init swan client, error: %v \n", err)
+func main() {
+	client, err := swan.NewAPIClient("<YOUR_API_KEY>")
+	if err != nil {
+		log.Fatalf("failed to init swan client, error: %v \n", err)
+	}
+	task, err := client.CreateTask(&swan.CreateTaskReq{
+		PrivateKey:   "<PRIVATE_KEY>",
+		RepoUri:      "https://github.com/swanchain/awesome-swanchain/tree/main/hello_world",
+		Duration:     2 * time.Hour,
+		InstanceType: "C1ae.small",
+	})
+	taskUUID := task.Task.UUID
+
+	// Get task deployment info
+	resp, err := client.TaskInfo(taskUUID)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Printf("task info: %+v \n", resp)
+
+	//Get application instances URL
+	appUrls, err := client.GetRealUrl(taskUUID)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Printf("app urls: %v \n", appUrls)
 }
-task, err := client.CreateTask(&CreateTaskReq{
-    PrivateKey:   "<PRIVATE_KEY>",
-    RepoUri:      "https://github.com/swanchain/awesome-swanchain/tree/main/hello_world",
-    Duration:     2 * time.Hour,
-    InstanceType: "C1ae.small", 
-})
-
-taskUUID := task.Task.UUID
-
-// Get task deployment info
-resp, err := client.TaskInfo(taskUUID)
-
-//Get application instances URL
-appUrls, err := client.GetRealUrl(taskUUID)
-if err != nil {
-	log.Fatalln(err)
-}
-log.Printf("app urls: %v", appUrls)
-
 ```
 
 ### Usage
