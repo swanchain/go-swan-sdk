@@ -67,7 +67,7 @@ import (
 	"github.com/swanchain/go-swan-sdk"
 )
 
-apiClient, err := swan.NewAPIClient(apiKey)
+client, err := swan.NewAPIClient(apiKey)
 if err != nil {
 	log.Fatalf("failed to init swan client, error: %v \n", err)
 }
