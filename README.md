@@ -195,6 +195,7 @@ More resources about swan SDK can be found
  - [Deploying with Swan SDK](https://docs.swanchain.io/start-here/readme/deploying-with-swan-sdk)
  - [Python-swan-sdk](https://github.com/swanchain/python-swan-sdk)
  - [Python-swan-sdk-samples](https://github.com/swanchain/python-swan-sdk)
+ - [Use Swan SDK on the Swan Chain Testnet](https://github.com/swanchain/go-swan-sdk/blob/main/doc/use_swan_sdk_on_the_testnet.md)
  
 
 
