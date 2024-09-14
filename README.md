@@ -38,10 +38,9 @@
 
 To use `swan-sdk`, an Swan API key is required. Steps to get an API Key:
 
-- Go to [Orchestrator Dashboard](https://orchestrator.swanchain.io/provider-status), switch network to [Swan Chain Mainnet](https://docs.swanchain.io/network-reference/readme).
+- Go to [Swan Console](https://console.swanchain.io/), switch network to [Swan Chain Mainnet](https://docs.swanchain.io/network-reference/readme).
 - Login with your wallet.
-- Click the user icon on the top right.
-- Click `Show API-Key` -> `New API Key`
+- Click `API Keys` -> `Generate API Key`
 
 #### Using go-swan-sdk
 
